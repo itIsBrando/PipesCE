@@ -1,0 +1,516 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\ARRAY.C"
+	.assume ADL=1
+	SEGMENT BSS
+_keepWaterTick:
+	DS	1
+	SEGMENT CODE
+;    1	#include "main.h"
+;    2	#include "array.h"
+;    3	#include "tilemap.h"
+;    4	#include "fire.h"
+;    5	#include "sprites.h"
+;    6	#include "engine.h"
+;    7	#include "graphics.h"
+;    8	#include "water.h"
+;    9	
+;   10	
+;   11	/* puts an object at an index.
+;   12	 * @param &self pointer to array to modify
+;   13	 * @param value object to write
+;   14	 * @param index index to write 
+;   15	 * @returns none.*/
+;   16	void Array_Set(Array *self, var value, unsigned int index) {
+_Array_Set:
+	LD	HL,-9
+	CALL	__frameset
+;   17	    const unsigned int i = index * self->nsize;
+	LD	IY,(IX+6)
+	LD	BC,(IY+9)
+	LD	(IX+-3),BC
+	LD	HL,(IX+12)
+	CALL	__imulu
+	LD	(IX+-6),HL
+;   18	    const char *ptr = (char*)self->data + i;
+	LD	BC,(IY+3)
+	ADD	HL,BC
+	LD	(IX+-9),HL
+;   19	    
+;   20	    if(index > self->size)
+;   21	        dbg_sprintf(dbgerr, "\nIndex Out of Bounds tried: %d largest valid: %d\n\n", index, self->size);
+;   22	
+;   23	    memcpy(ptr, value, self->nsize);
+	LD	BC,(IX+-3)
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+-9)
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;   24	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_Set ***************************
+;Name                         Addr/Register   Size   Type
+;_memcpy                             IMPORT  -----   function
+;ptr                                   IX-9      3   variable
+;i                                     IX-6      3   variable
+;G_0                                   IX-3      3   variable
+;index                                IX+12      3   parameter
+;value                                 IX+9      3   parameter
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 24 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   25	
+;   26	/* resets the array but doesn't clear memory.
+;   27	 * @param &self pointer to array
+;   28	 * @returns none.*/
+;   29	void Array_Clear(Array *self) {
+_Array_Clear:
+	CALL	__frameset0
+;   30	    self->lastUsed = 0;
+	LD	IY,(IX+6)
+	LD	BC,0
+	LD	(IY+6),BC
+;   31	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_Clear ***************************
+;Name                         Addr/Register   Size   Type
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   32	
+;   33	
+;   34	/* safely looks up an index
+;   35	 * @param &self pointer to array to modify
+;   36	 * @param index index to read 
+;   37	 * @returns an object at a given index.*/
+;   38	var Array_Get(Array *self, unsigned int index) {
+_Array_Get:
+	CALL	__frameset0
+;   39	    return (char*)self->data + index * self->nsize;
+	LD	IY,(IX+6)
+	LD	HL,(IY+9)
+	LD	BC,(IX+9)
+	LD	DE,(IY+3)
+	CALL	__imulu
+	ADD	HL,DE
+;   40	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_Get ***************************
+;Name                         Addr/Register   Size   Type
+;index                                 IX+9      3   parameter
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   41	
+;   42	
+;   43	/* safely adds an object to the end of the array
+;   44	 * @param &self pointer to array to modify
+;   45	 * @param value object
+;   46	 * @returns none.*/
+;   47	void Array_Append(Array *self, var value) {
+_Array_Append:
+	CALL	__frameset0
+;   48	    Array_Set(self, value, self->lastUsed);
+	LD	IY,(IX+6)
+	LD	BC,(IY+6)
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_Array_Set
+	POP	BC
+	POP	BC
+	POP	BC
+;   49	    self->lastUsed++;
+	LD	IY,(IX+6)
+	LD	BC,(IY+6)
+	INC	BC
+	LD	(IY+6),BC
+;   50	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_Append ***************************
+;Name                         Addr/Register   Size   Type
+;_Array_Set                          IMPORT  -----   function
+;value                                 IX+9      3   parameter
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   51	
+;   52	
+;   53	var Array_GetLast(Array *self) {
+_Array_GetLast:
+	CALL	__frameset0
+;   54	    return Array_Get(self, self->lastUsed-1);
+	LD	IY,(IX+6)
+	LD	IY,(IY+6)
+	LEA	BC,IY+-1
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_Array_Get
+	POP	BC
+	POP	BC
+;   55	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_GetLast ***************************
+;Name                         Addr/Register   Size   Type
+;_Array_Get                          IMPORT  -----   function
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   56	
+;   57	
+;   58	/* Initializes a new array.
+;   59	 * Throws an error if memory could not be allocated.
+;   60	 * @param &self pointer to array to modify
+;   61	 * @param elements number of indexes
+;   62	 * @param size size_t of each object
+;   63	 * @returns none.*/
+;   64	void Array_New(Array *self, const unsigned int elements, const size_t size) {
+_Array_New:
+	LD	HL,-3
+	CALL	__frameset
+;   65	    const unsigned int BYTES = elements * size;
+	LD	HL,(IX+9)
+	LD	BC,(IX+12)
+	CALL	__imulu
+	LD	(IX+-3),HL
+;   66	    self->size = elements;
+	LD	BC,(IX+9)
+	LD	IY,(IX+6)
+	LD	(IY+0),BC
+;   67	    self->nsize = size;
+	LD	BC,(IX+12)
+	LD	(IY+9),BC
+;   68	    self->lastUsed = 0;
+	LD	BC,0
+	LD	(IY+6),BC
+;   69	    self->data = malloc(BYTES);
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_malloc
+	POP	BC
+	LD	IY,(IX+6)
+	LD	(IY+3),HL
+;   70	
+;   71	    dbg_sprintf(dbgerr, "New array loc: %p, size: %d\n", self->data, BYTES);
+;   72	    assert(self->data);
+;   73	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_New ***************************
+;Name                         Addr/Register   Size   Type
+;_malloc                             IMPORT  -----   function
+;BYTES                                 IX-3      3   variable
+;size                                 IX+12      3   parameter
+;elements                              IX+9      3   parameter
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   74	
+;   75	
+;   76	/* Cleans up an array
+;   77	 * @param &self pointer to array to modify
+;   78	 * @returns none.*/
+;   79	void Array_Destroy(Array *self) {
+_Array_Destroy:
+	CALL	__frameset0
+;   80	    free(self->data);
+	LD	IY,(IX+6)
+	LD	BC,(IY+3)
+	PUSH	BC
+	CALL	_free
+	POP	BC
+;   81	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_Destroy ***************************
+;Name                         Addr/Register   Size   Type
+;_free                               IMPORT  -----   function
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   82	
+;   83	
+;   84	/* Removes an index from an array
+;   85	 * Updates the size
+;   86	 * @param &self pointer to array to modify
+;   87	 * @param index index to remove 
+;   88	 * @returns none.*/
+;   89	void Array_RemoveAt(Array *self, const unsigned int index) {
+_Array_RemoveAt:
+	LD	HL,-3
+	CALL	__frameset
+;   90	
+;   91	    if(index > self->lastUsed)
+;   92	        assert(false);
+;   93	
+;   94	    self->lastUsed--;
+	LD	IY,(IX+6)
+	LD	BC,(IY+6)
+	DEC	BC
+	LD	(IY+6),BC
+;   95	
+;   96	    if(index == self->lastUsed)
+	LD	BC,(IX+9)
+	LD	HL,(IY+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	Z,L_18
+;   97	        return;
+;   98	
+;   99	    memcpy((char*)self->data + index * self->nsize, (char*)self->data + (index+1) * self->nsize, (self->size - index) * self->nsize);
+	LD	IY,(IX+6)
+	LD	DE,(IY+9)
+	LD	BC,(IY+3)
+	LD	(IX+-3),BC
+	LD	HL,(IY+0)
+	LD	BC,(IX+9)
+	OR	A,A
+	SBC	HL,BC
+	LD	BC,DE
+	CALL	__imulu
+	PUSH	HL
+	LD	HL,(IX+9)
+	INC	HL
+	LD	BC,DE
+	CALL	__imulu
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	PUSH	HL
+	LD	HL,(IX+9)
+	LD	BC,DE
+	CALL	__imulu
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	PUSH	HL
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;  100	}
+L_18:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_RemoveAt ***************************
+;Name                         Addr/Register   Size   Type
+;_memcpy                             IMPORT  -----   function
+;index                                 IX+9      3   parameter
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  101	
+;  102	
+;  103	/* Removes an element from an Array given a pointer to the object
+;  104	 * @param &self pointer to array to modify
+;  105	 * @param item pointer of object to remove (var)
+;  106	 * @returns none.*/
+;  107	void Array_Remove(Array *self, var item) {
+_Array_Remove:
+	LD	HL,-3
+	CALL	__frameset
+;  108	    unsigned int i;
+;  109	
+;  110	    for(i = 0; i < self->lastUsed; i++) {
+	LD	BC,0
+	LD	(IX+-3),BC
+	JR	L_23
+L_21:
+;  111	        if((var)Array_Get(self, i) == (var)item) {
+	LD	BC,(IX+-3)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_Array_Get
+	POP	BC
+	POP	BC
+	LD	BC,(IX+9)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_22
+;  112	            Array_RemoveAt(self, i);
+	LD	BC,(IX+-3)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_Array_RemoveAt
+	POP	BC
+	POP	BC
+;  113	            return;
+	JR	L_25
+;  114	        }
+;  115	    }
+L_22:
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+L_23:
+	LD	IY,(IX+6)
+	LD	BC,(IY+6)
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_21
+;  116	
+;  117	    assert(false);
+;  118	}
+L_25:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_Remove ***************************
+;Name                         Addr/Register   Size   Type
+;_Array_RemoveAt                     IMPORT  -----   function
+;_Array_Get                          IMPORT  -----   function
+;i                                     IX-3      3   variable
+;item                                  IX+9      3   parameter
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  119	
+;  120	
+;  121	/* Resizes an Array
+;  122	 * ***lastUsed is not modified!!!***
+;  123	 * @param &self pointer to array to modify
+;  124	 * @param size number of elements
+;  125	 * @returns true if succesful.*/
+;  126	bool Array_Resize(Array *self, unsigned int size) {
+_Array_Resize:
+	LD	HL,-3
+	CALL	__frameset
+;  127	    const unsigned int actualSize = size * self->nsize;
+	LD	IY,(IX+6)
+	LD	HL,(IY+9)
+	LD	BC,(IX+9)
+	CALL	__imulu
+	LD	(IX+-3),HL
+;  128	
+;  129	    // break if 0 is passed as size or array was never initialized
+;  130	    assert(self->data);
+;  131	    assert(actualSize);
+;  132	
+;  133	    free(self->data);
+	LD	BC,(IY+3)
+	PUSH	BC
+	CALL	_free
+	POP	BC
+;  134	
+;  135	    self->data = malloc(actualSize);
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_malloc
+	POP	BC
+	LD	IY,(IX+6)
+	LD	(IY+3),HL
+;  136	
+;  137	    return (bool)self->data;
+	LD	A,(IY+3)
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _Array_Resize ***************************
+;Name                         Addr/Register   Size   Type
+;_malloc                             IMPORT  -----   function
+;_free                               IMPORT  -----   function
+;actualSize                            IX-3      3   variable
+;size                                  IX+9      3   parameter
+;self                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _memcpy:ROM
+	XREF _free:ROM
+	XREF _malloc:ROM
+	XREF __imulu:ROM
+	XREF __frameset0:ROM
+	XREF __frameset:ROM
+	XDEF _Array_Resize
+	XDEF _Array_Remove
+	XDEF _Array_RemoveAt
+	XDEF _Array_Destroy
+	XDEF _Array_New
+	XDEF _Array_GetLast
+	XDEF _Array_Append
+	XDEF _Array_Get
+	XDEF _Array_Clear
+	XDEF _Array_Set
+	END

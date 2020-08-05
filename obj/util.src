@@ -1,0 +1,641 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\UTIL.C"
+	.assume ADL=1
+	SEGMENT BSS
+_saveSlot:
+	DS	1
+_save:
+	DS	21
+;    1	#include "main.h"
+;    2	#include "array.h"
+;    3	#include "util.h"
+;    4	#include "images/colors.h"
+;    5	
+;    6	#define SAVE_NAME "PIPESAVE"
+;    7	#define CURRENT_SAVE_VERSION 1
+;    8	
+;    9	static ti_var_t saveSlot;
+;   10	static save_t save;
+	SEGMENT CODE
+;   11	
+;   12	
+;   13	void loadData() {
+_loadData:
+	LD	HL,-1
+	CALL	__frameset
+;   14	    ti_var_t file;
+;   15	    ti_CloseAll();
+	CALL	_ti_CloseAll
+;   16	
+;   17	 
+;   18	    if(ti_Open(SAVE_NAME, "r"))
+	LD	BC,L__0
+	PUSH	BC
+	LD	BC,L__1
+	PUSH	BC
+	CALL	_ti_Open
+	POP	BC
+	POP	BC
+	OR	A,A
+	JR	Z,L_2
+;   19	    {
+;   20	        file = ti_Open(SAVE_NAME, "r+");
+	LD	BC,L__3
+	PUSH	BC
+	LD	BC,L__4
+	PUSH	BC
+	CALL	_ti_Open
+	POP	BC
+	POP	BC
+	LD	(IX+-1),A
+;   21	        memcpy(&save, ti_GetDataPtr(file), sizeof(save_t));
+	LD	BC,21
+	PUSH	BC
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	CALL	_ti_GetDataPtr
+	POP	BC
+	PUSH	HL
+	LD	BC,_save
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;   22	        if(save.version != CURRENT_SAVE_VERSION)
+	LD	A,(_save)
+	CP	A,1
+	JR	Z,L_3
+;   23	        {
+;   24	            gfx_PrintStringXY("Save version depreciated.", 0, 0);
+	LD	BC,0
+	PUSH	BC
+	PUSH	BC
+	LD	BC,L__6
+	PUSH	BC
+	CALL	_gfx_PrintStringXY
+	POP	BC
+	POP	BC
+	POP	BC
+;   25	            gfx_PrintStringXY("Attempting to upgrade save.", 0, 8);
+	LD	BC,8
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	BC,L__7
+	PUSH	BC
+	CALL	_gfx_PrintStringXY
+	POP	BC
+	POP	BC
+	POP	BC
+;   26	            upgradeSave();
+	CALL	_upgradeSave
+;   27	        }
+;   28	    } else {
+	JR	L_3
+L_2:
+;   29	        file = ti_Open(SAVE_NAME, "w+");
+	LD	BC,L__8
+	PUSH	BC
+	LD	BC,L__9
+	PUSH	BC
+	CALL	_ti_Open
+	POP	BC
+	POP	BC
+	LD	(IX+-1),A
+;   30	        ti_Resize(sizeof(save_t), file);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,21
+	PUSH	BC
+	CALL	_ti_Resize
+	POP	BC
+	POP	BC
+;   31	    }
+L_3:
+;   32	
+;   33	    saveSlot = file;
+	LD	A,(IX+-1)
+	LD	(_saveSlot),A
+;   34	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _loadData ***************************
+;Name                         Addr/Register   Size   Type
+;_saveSlot                           STATIC      1   variable
+;_ti_Resize                          IMPORT  -----   function
+;_upgradeSave                        IMPORT  -----   function
+;_gfx_PrintStringXY                  IMPORT  -----   function
+;_save                               STATIC     21   variable
+;_ti_GetDataPtr                      IMPORT  -----   function
+;_memcpy                             IMPORT  -----   function
+;_ti_Open                            IMPORT  -----   function
+;_ti_CloseAll                        IMPORT  -----   function
+;file                                  IX-1      1   variable
+
+
+; Stack Frame Size: 7 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	SEGMENT STRSECT
+L__0:
+	DB	"r"
+	DB	0
+L__1:
+	DB	"PIPESAVE"
+	DB	0
+L__3:
+	DB	"r+"
+	DB	0
+L__4:
+	DB	"PIPESAVE"
+	DB	0
+L__6:
+	DB	"Save version depreciated."
+	DB	0
+L__7:
+	DB	"Attempting to upgrade save."
+	DB	0
+L__8:
+	DB	"w+"
+	DB	0
+L__9:
+	DB	"PIPESAVE"
+	DB	0
+	SEGMENT CODE
+;   35	
+;   36	
+;   37	void saveData() {
+_saveData:
+	LD	HL,-3
+	CALL	__frameset
+;   38	    const void *pointer = ti_GetDataPtr(saveSlot);
+	LD	A,(_saveSlot)
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	CALL	_ti_GetDataPtr
+	POP	BC
+	LD	(IX+-3),HL
+;   39	
+;   40	    memcpy(pointer, &save, sizeof(save_t));
+	LD	BC,21
+	PUSH	BC
+	LD	BC,_save
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;   41	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _saveData ***************************
+;Name                         Addr/Register   Size   Type
+;_save                               STATIC     21   variable
+;_memcpy                             IMPORT  -----   function
+;_saveSlot                           STATIC      1   variable
+;_ti_GetDataPtr                      IMPORT  -----   function
+;pointer                               IX-3      3   variable
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   42	
+;   43	
+;   44	void upgradeSaveFail() {
+_upgradeSaveFail:
+;   45	    gfx_SetTextFGColor(COLOR_RED);
+	LD	BC,17
+	PUSH	BC
+	CALL	_gfx_SetTextFGColor
+	POP	BC
+;   46	    gfx_PrintStringXY("Save couldn't be upgraded.", 0, 16);
+	LD	BC,16
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	BC,L__12
+	PUSH	BC
+	CALL	_gfx_PrintStringXY
+	POP	BC
+	POP	BC
+	POP	BC
+;   47	    gfx_PrintStringXY("Delete "SAVE_NAME" appvar. Report version:", 0, 24);
+	LD	BC,24
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	BC,L__13
+	PUSH	BC
+	CALL	_gfx_PrintStringXY
+	POP	BC
+	POP	BC
+	POP	BC
+;   48	    gfx_PrintUInt(save.version, 2);
+	LD	A,(_save)
+	UEXT	HL
+	LD	BC,2
+	PUSH	BC
+	LD	L,A
+	PUSH	HL
+	CALL	_gfx_PrintUInt
+	POP	BC
+	POP	BC
+;   49	
+;   50	    while(!os_GetCSC());
+L_7:
+	CALL	_os_GetCSC
+	OR	A,A
+	JR	Z,L_7
+;   51	    gfx_End();
+	CALL	_gfx_End
+;   52	    exit(0);
+	LD	BC,0
+	PUSH	BC
+	CALL	_exit
+	POP	BC
+;   53	}
+	RET	
+
+
+;**************************** _upgradeSaveFail ***************************
+;Name                         Addr/Register   Size   Type
+;_exit                               IMPORT  -----   function
+;_gfx_End                            IMPORT  -----   function
+;_os_GetCSC                          IMPORT  -----   function
+;_save                               STATIC     21   variable
+;_gfx_PrintUInt                      IMPORT  -----   function
+;_gfx_PrintStringXY                  IMPORT  -----   function
+;_gfx_SetTextFGColor                 IMPORT  -----   function
+
+
+; Stack Frame Size: 6 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	SEGMENT STRSECT
+L__12:
+	DB	"Save couldn't be upgraded."
+	DB	0
+L__13:
+	DB	"Delete PIPESAVE appvar. Report version:"
+	DB	0
+	SEGMENT CODE
+;   54	
+;   55	
+;   56	void upgradeSave() {
+_upgradeSave:
+	LD	HL,-8
+	CALL	__frameset
+;   57	    ti_var_t file;
+;   58	    unsigned int oldSaveSize;
+;   59	    uint8_t oldVersion;
+;   60	    void *pointer;
+;   61	
+;   62	    ti_CloseAll();
+	CALL	_ti_CloseAll
+;   63	    file = ti_Open(SAVE_NAME, "r+");
+	LD	BC,L__16
+	PUSH	BC
+	LD	BC,L__17
+	PUSH	BC
+	CALL	_ti_Open
+	POP	BC
+	POP	BC
+	LD	(IX+-1),A
+;   64	    pointer = ti_GetDataPtr(file);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	CALL	_ti_GetDataPtr
+	POP	BC
+	LD	(IX+-8),HL
+;   65	    oldSaveSize = ti_GetSize(file);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	CALL	_ti_GetSize
+	POP	BC
+	LD	BC,HL
+	CALL	__stoiu
+	LD	(IX+-5),HL
+;   66	
+;   67	    // copy old data into the save struct
+;   68	    memcpy(&save, pointer, oldSaveSize);
+	LD	BC,HL
+	PUSH	BC
+	LD	BC,(IX+-8)
+	PUSH	BC
+	LD	BC,_save
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;   69	
+;   70	    // change size to fit new struct size
+;   71	    ti_Resize(sizeof(save_t), file);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,21
+	PUSH	BC
+	CALL	_ti_Resize
+	POP	BC
+	POP	BC
+;   72	
+;   73	    oldVersion = save.version;
+	LD	A,(_save)
+	LD	(IX+-2),A
+;   74	    save.version = CURRENT_SAVE_VERSION;
+	LD	A,1
+	LD	(_save),A
+;   75	
+;   76	    // all handable save versions
+;   77	    switch(oldVersion)
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	CALL	__icmpzero
+	JR	NZ,L_11
+;   78	    {
+;   79	        case 0:
+;   80	            memcpy(pointer, &save, oldSaveSize);
+	LD	BC,(IX+-5)
+	PUSH	BC
+	LD	BC,_save
+	PUSH	BC
+	LD	BC,(IX+-8)
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;   81	            break;
+	JR	L_12
+;   82	        default:
+L_11:
+;   83	            upgradeSaveFail();
+	CALL	_upgradeSaveFail
+;   84	
+;   85	    }
+L_12:
+;   86	    // change version
+;   87	
+;   88	    gfx_PrintStringXY("Save upgraded to newest version: ", 0, 16);
+	LD	BC,16
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	BC,L__18
+	PUSH	BC
+	CALL	_gfx_PrintStringXY
+	POP	BC
+	POP	BC
+	POP	BC
+;   89	    gfx_PrintUInt(CURRENT_SAVE_VERSION, 2);
+	LD	BC,2
+	PUSH	BC
+	LD	BC,1
+	PUSH	BC
+	CALL	_gfx_PrintUInt
+	POP	BC
+	POP	BC
+;   90	
+;   91	    while(!os_GetCSC());
+L_14:
+	CALL	_os_GetCSC
+	OR	A,A
+	JR	Z,L_14
+;   92	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _upgradeSave ***************************
+;Name                         Addr/Register   Size   Type
+;_os_GetCSC                          IMPORT  -----   function
+;_gfx_PrintUInt                      IMPORT  -----   function
+;_gfx_PrintStringXY                  IMPORT  -----   function
+;_ti_Resize                          IMPORT  -----   function
+;_save                               STATIC     21   variable
+;_memcpy                             IMPORT  -----   function
+;_ti_GetSize                         IMPORT  -----   function
+;_ti_GetDataPtr                      IMPORT  -----   function
+;_ti_Open                            IMPORT  -----   function
+;_ti_CloseAll                        IMPORT  -----   function
+;pointer                               IX-8      3   variable
+;oldSaveSize                           IX-5      3   variable
+;oldVersion                            IX-2      1   variable
+;file                                  IX-1      1   variable
+
+
+; Stack Frame Size: 14 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	SEGMENT STRSECT
+L__16:
+	DB	"r+"
+	DB	0
+L__17:
+	DB	"PIPESAVE"
+	DB	0
+L__18:
+	DB	"Save upgraded to newest version: "
+	DB	0
+	SEGMENT CODE
+;   93	
+;   94	void setLevelCompletion(uint8_t level) {
+_setLevelCompletion:
+	CALL	__frameset0
+;   95	    save.completed[level] = true;    
+	LD	A,(IX+6)
+	UEXT	HL
+	LD	L,A
+	LD	BC,_save+1
+	ADD	HL,BC
+	LD	(HL),1
+;   96	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _setLevelCompletion ***************************
+;Name                         Addr/Register   Size   Type
+;_save                               STATIC     21   variable
+;level                                 IX+6      1   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   97	
+;   98	
+;   99	bool getLevelCompletion(uint8_t level) {
+_getLevelCompletion:
+	CALL	__frameset0
+;  100	    return save.completed[level];
+	LD	A,(IX+6)
+	UEXT	HL
+	LD	L,A
+	LD	BC,_save+1
+	ADD	HL,BC
+	LD	A,(HL)
+;  101	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _getLevelCompletion ***************************
+;Name                         Addr/Register   Size   Type
+;_save                               STATIC     21   variable
+;level                                 IX+6      1   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  102	
+;  103	void rleDecompress(uint8_t *data, uint8_t **dest, size_t size) {
+_rleDecompress:
+	LD	HL,-7
+	CALL	__frameset
+;  104	    uint8_t j;
+;  105	    uint24_t i, out = 0;
+	LD	BC,0
+	LD	(IX+-7),BC
+;  106	
+;  107	    if(size & 1)
+	LD	A,(IX+12)
+	AND	A,1
+	UEXT	HL
+	LD	L,A
+	CALL	__icmpzero
+	JR	Z,L_22
+;  108	        abort();
+	CALL	_abort
+L_22:
+;  109	
+;  110	    for(i = 0; i <= size; i += 2) {
+	LD	BC,0
+	LD	(IX+-3),BC
+	JR	L_21
+L_19:
+;  111	        const uint8_t count = data[i];
+	LD	BC,(IX+-3)
+	LD	HL,(IX+6)
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	(IX+-4),A
+;  112	        /* for(j = 0; j < data[i]; j++)
+;  113	        {
+;  114	            (*dest)[out++] = data[i + 1];
+;  115	        } */
+;  116	        memset((*dest + out), data[i + 1], count);
+	UEXT	HL
+	LD	L,A
+	PUSH	HL
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	HL,(IX+6)
+	ADD	HL,BC
+	LD	A,(HL)
+	UEXT	HL
+	LD	L,A
+	PUSH	HL
+	LD	HL,(IX+9)
+	LD	HL,(HL)
+	LD	BC,(IX+-7)
+	ADD	HL,BC
+	PUSH	HL
+	CALL	_memset
+	POP	BC
+	POP	BC
+	POP	BC
+;  117	        out += count;
+	LD	A,(IX+-4)
+	UEXT	HL
+	LD	L,A
+	LD	BC,(IX+-7)
+	ADD	HL,BC
+	LD	(IX+-7),HL
+	LD	IY,(IX+-3)
+	LEA	IY,IY+2
+	LD	(IX+-3),IY
+;  118	    }
+L_21:
+	LD	BC,(IX+-3)
+	LD	HL,(IX+12)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_19
+;  119	
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _rleDecompress ***************************
+;Name                         Addr/Register   Size   Type
+;_memset                             IMPORT  -----   function
+;_abort                              IMPORT  -----   function
+;out                                   IX-7      3   variable
+;count                                 IX-4      1   variable
+;i                                     IX-3      3   variable
+;size                                 IX+12      3   parameter
+;dest                                  IX+9      3   parameter
+;data                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 22 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _gfx_SetTextFGColor:ROM
+	XREF _gfx_PrintStringXY:ROM
+	XREF _gfx_PrintUInt:ROM
+	XREF _gfx_End:ROM
+	XREF _memset:ROM
+	XREF _memcpy:ROM
+	XREF _ti_GetDataPtr:ROM
+	XREF _ti_Resize:ROM
+	XREF _ti_GetSize:ROM
+	XREF _ti_Open:ROM
+	XREF _ti_CloseAll:ROM
+	XREF _exit:ROM
+	XREF _abort:ROM
+	XREF _os_GetCSC:ROM
+	XREF __stoiu:ROM
+	XREF __frameset0:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XDEF _rleDecompress
+	XDEF _getLevelCompletion
+	XDEF _setLevelCompletion
+	XDEF _upgradeSave
+	XDEF _upgradeSaveFail
+	XDEF _saveData
+	XDEF _loadData
+	END

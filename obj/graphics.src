@@ -1,0 +1,1130 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\GRAPHICS.C"
+	.assume ADL=1
+	SEGMENT BSS
+_keepWaterTick:
+	DS	1
+_animationTile:
+	DS	12
+_animationTimer:
+	DS	1
+	SEGMENT DATA
+_playerS:
+	DW24	_character_still_data
+;    1	#include "main.h"
+;    2	#include "array.h"
+;    3	#include "fire.h"
+;    4	#include "tilemap.h"
+;    5	#include "sprites.h"
+;    6	#include "engine.h"
+;    7	#include "graphics.h"
+;    8	#include "water.h"
+;    9	#include "images/gfx.h"
+;   10	
+;   11	Array animationTile;
+;   12	uint8_t animationTimer;
+;   13	static gfx_sprite_t *playerS = playerSprite;
+	SEGMENT CODE
+;   14	
+;   15	
+;   16	/* Initializes the 'animationTiles' Array.
+;   17	 * Should be called before a level is drawn
+;   18	 * @returns none */
+;   19	void initAnimations() {
+_initAnimations:
+	LD	HL,-20
+	CALL	__frameset
+;   20	    uint8_t x, y;
+;   21	
+;   22	    Array_Clear(&animationTile);
+	LD	BC,_animationTile
+	PUSH	BC
+	CALL	_Array_Clear
+	POP	BC
+;   23	    animationTimer = 0;
+	XOR	A,A
+	LD	(_animationTimer),A
+;   24	
+;   25	    for(y = 0; y < curLevel->height; y++)
+	LD	(IX+-2),0
+	JR	L_12
+L_10:
+;   26	    {
+;   27	        for (x = 0; x < curLevel->width; x++)
+	LD	(IX+-1),0
+	JR	L_9
+L_7:
+;   28	        {
+;   29	            tile_t tile = getTile(x, y);
+	LD	C,(IX+-2)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+-1)
+	PUSH	BC
+	PEA	IX+-20
+	CALL	_getTile
+	POP	BC
+	POP	BC
+	POP	BC
+	LEA	DE,IX+-13
+	LD	BC,7
+	LDIR	
+;   30	            animation_t a;
+;   31	
+;   32	            a.x = x;
+	LD	A,(IX+-1)
+	LD	(IX+-4),A
+;   33	            a.y = y;
+	LD	A,(IX+-2)
+	LD	(IX+-3),A
+;   34	
+;   35	            switch (tile.id)
+	LD	A,(IX+-7)
+	UEXT	HL
+	LD	L,A
+	CALL	__case8
+L__0:
+	DW	3
+	DB	10
+	DW24	L_2	
+
+	DB	16
+	DW24	L_3	
+
+	DB	18
+	DW24	L_6	
+
+	DW24	L_8	
+
+;   36	            {
+;   37	            case TILE_FIRE_1:
+L_2:
+;   38	                a.item1 = TILE_FIRE_1;
+	LD	(IX+-6),10
+;   39	                a.item2 = TILE_FIRE_2;
+	LD	(IX+-5),11
+;   40	                break;
+	JR	L_6
+;   41	            case TILE_BLUE_FIRE_1:
+L_3:
+;   42	                a.item1 = TILE_BLUE_FIRE_1;
+	LD	(IX+-6),16
+;   43	                a.item2 = TILE_BLUE_FIRE_2;
+	LD	(IX+-5),17
+;   44	                break;
+;   45	            case TILE_WATER:
+;   46	                break;
+;   47	            default:
+;   48	                continue;
+;   49	            }
+L_6:
+;   50	            
+;   51	            Array_Append(&animationTile, &a);
+	PEA	IX+-6
+	LD	BC,_animationTile
+	PUSH	BC
+	CALL	_Array_Append
+	POP	BC
+	POP	BC
+;   52	        }
+L_8:
+	INC	(IX+-1)
+L_9:
+	LD	IY,(_curLevel)
+	LD	A,(IX+-1)
+	CP	A,(IY+4)
+	JR	C,L_7
+	INC	(IX+-2)
+;   53	        
+;   54	    }
+L_12:
+	LD	IY,(_curLevel)
+	LD	A,(IX+-2)
+	CP	A,(IY+5)
+	JR	C,L_10
+;   55	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _initAnimations ***************************
+;Name                         Addr/Register   Size   Type
+;_curLevel                           IMPORT      3   variable
+;_Array_Append                       IMPORT  -----   function
+;_getTile                            IMPORT  -----   function
+;_animationTimer                     STATIC      1   variable
+;_animationTile                      STATIC     12   variable
+;_Array_Clear                        IMPORT  -----   function
+;tile                                 IX-13      7   variable
+;a                                     IX-6      4   variable
+;y                                     IX-2      1   variable
+;x                                     IX-1      1   variable
+
+
+; Stack Frame Size: 26 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   56	
+;   57	
+;   58	void doAnimations() {
+_doAnimations:
+	LD	HL,-22
+	CALL	__frameset
+;   59	    uint8_t i;
+;   60	
+;   61	    animationTimer++;
+	LD	A,(_animationTimer)
+	INC	A
+	LD	(_animationTimer),A
+;   62	    animateWater();
+	CALL	_animateWater
+;   63	
+;   64	    if((animationTimer % 15) != 0)
+	LD	A,(_animationTimer)
+	UEXT	HL
+	LD	L,A
+	LD	BC,15
+	CALL	__irems
+	CALL	__icmpzero
+	JR	NZ,L_27
+;   65	        return;
+;   66	    
+;   67	    
+;   68	    foreach(animationTile, i) {
+	LD	(IX+-4),0
+	JR	L_25
+L_23:
+;   69	        animation_t *a = (animation_t*)Array_Get(&animationTile, i);
+	LD	A,(IX+-4)
+	UEXT	HL
+	LD	L,A
+	PUSH	HL
+	LD	BC,_animationTile
+	PUSH	BC
+	CALL	_Array_Get
+	POP	BC
+	POP	BC
+	LD	(IX+-3),HL
+;   70	        tile_t tile = getTile(a->x, a->y);
+	LD	IY,(IX+-3)
+	LD	C,(IY+3)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IY+2)
+	PUSH	BC
+	PEA	IX+-22
+	CALL	_getTile
+	POP	BC
+	POP	BC
+	POP	BC
+	LEA	DE,IX+-15
+	LD	BC,7
+	LDIR	
+;   71	
+;   72	        if(tile.id == TILE_WATER) {
+	LD	A,(IX+-9)
+	CP	A,18
+	JR	NZ,L_22
+;   73	            drawTile(tile, a->x, a->y);
+	LD	IY,(IX+-3)
+	LD	C,(IY+3)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IY+2)
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
+	OR	A,A
+	SBC	HL,HL
+	ADD	HL,SP
+	LD	DE,HL
+	LEA	HL,IX+-15
+	LD	BC,7
+	LDIR	
+	CALL	_drawTile
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   74	        } else {
+	JR	L_24
+L_22:
+;   75	            tile.id = tile.id == a->item1 ? a->item2 : a->item1;
+	LD	IY,(IX+-3)
+	LD	A,(IY+0)
+	LD	(IX+-5),A
+	LD	A,(IX+-9)
+	CP	A,(IX+-5)
+	JR	NZ,L_19
+	LD	IY,(IX+-3)
+	LD	A,(IY+1)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-8),HL
+	JR	L_20
+L_19:
+	LD	A,(IX+-5)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-8),HL
+L_20:
+	LD	A,(IX+-8)
+	LD	(IX+-9),A
+;   76	            setTile(a->x, a->y, &tile);
+	PEA	IX+-15
+	LD	IY,(IX+-3)
+	LD	C,(IY+3)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IY+2)
+	PUSH	BC
+	CALL	_setTile
+	POP	BC
+	POP	BC
+	POP	BC
+;   77	        }
+;   78	
+;   79	    }
+L_24:
+	INC	(IX+-4)
+L_25:
+	LD	A,(IX+-4)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,(_animationTile+6)
+	SBC	HL,BC
+	JR	C,L_23
+;   80	}
+L_27:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _doAnimations ***************************
+;Name                         Addr/Register   Size   Type
+;_setTile                            IMPORT  -----   function
+;_drawTile                           IMPORT  -----   function
+;_getTile                            IMPORT  -----   function
+;_animationTile                      STATIC     12   variable
+;_Array_Get                          IMPORT  -----   function
+;_animateWater                       IMPORT  -----   function
+;_animationTimer                     STATIC      1   variable
+;tile                                 IX-15      7   variable
+;temp17                                IX-8      3   variable
+;G_0                                   IX-5      1   variable
+;i                                     IX-4      1   variable
+;a                                     IX-3      3   variable
+
+
+; Stack Frame Size: 28 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   81	
+;   82	
+;   83	/* Stops a tile at (x, y) from animating
+;   84	 * @param x X row of the tile
+;   85	 * @param y Y column of the tile
+;   86	 * @returns none */
+;   87	void removeAnimation(const uint8_t x, const uint8_t y) {
+_removeAnimation:
+	LD	HL,-4
+	CALL	__frameset
+;   88	    uint8_t i;
+;   89	
+;   90	    foreach(animationTile, i)
+	LD	(IX+-1),0
+	JR	L_33
+L_31:
+;   91	    {
+;   92	        animation_t *a = (animation_t*)Array_Get(&animationTile, i);
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	PUSH	HL
+	LD	BC,_animationTile
+	PUSH	BC
+	CALL	_Array_Get
+	POP	BC
+	POP	BC
+	LD	(IX+-4),HL
+;   93	
+;   94	        if(a->x == x && a->y == y)
+	LD	IY,(IX+-4)
+	LD	A,(IY+2)
+	CP	A,(IX+6)
+	JR	NZ,L_32
+	LD	IY,(IX+-4)
+	LD	A,(IY+3)
+	CP	A,(IX+9)
+	JR	NZ,L_32
+;   95	        {
+;   96	            Array_RemoveAt(&animationTile, i);
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	PUSH	HL
+	LD	BC,_animationTile
+	PUSH	BC
+	CALL	_Array_RemoveAt
+	POP	BC
+	POP	BC
+;   97	            return;
+	JR	L_34
+;   98	        }
+;   99	    }
+L_32:
+	INC	(IX+-1)
+L_33:
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,(_animationTile+6)
+	SBC	HL,BC
+	JR	C,L_31
+;  100	
+;  101	}
+L_34:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _removeAnimation ***************************
+;Name                         Addr/Register   Size   Type
+;_Array_RemoveAt                     IMPORT  -----   function
+;_animationTile                      STATIC     12   variable
+;_Array_Get                          IMPORT  -----   function
+;a                                     IX-4      3   variable
+;i                                     IX-1      1   variable
+;y                                     IX+9      1   parameter
+;x                                     IX+6      1   parameter
+
+
+; Stack Frame Size: 16 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  102	
+;  103	/* draws a sprite and adds displacement from 'curLevel'
+;  104	 * @param *sprite gfx_sprite_t to draw to the screen
+;  105	 * @param x X coordinate of sprite in pixels
+;  106	 * @param y Y coordinate of sprite in pixels
+;  107	 * @returns none */
+;  108	#define drawSpriteWithOffset(sprite, x, y) drawSprite(sprite, (unsigned int)(x) + curLevel->ox, (y) + curLevel->oy)
+;  109	#define drawSpriteWithOffset_Transparent(sprite, x, y) drawSprite_Transparent(sprite, (unsigned int)(x) + curLevel->ox, (y) + curLevel->oy)
+;  110	
+;  111	
+;  112	/* redraws a tile at a given (row, column)
+;  113	 * @param tile tile_t to draw to the screen
+;  114	 * @param row X coordinate
+;  115	 * @param column Y coordinate
+;  116	 * @returns none */
+;  117	void drawTile(tile_t tile, uint8_t row, uint8_t column) {
+_drawTile:
+	LD	HL,-14
+	CALL	__frameset
+;  118	    // const gfx_sprite_t *sprite = (tile.type == TYPE_FIRE && !tile.data.fire.isLit) ? (gfx_sprite_t*)floor_data : lookupTile(tile.id).data;
+;  119	    const gfx_sprite_t *sprite = lookupTile(tile.id).data;
+	LD	C,(IX+12)
+	LD	B,0
+	PUSH	BC
+	PEA	IX+-14
+	CALL	_lookupTile
+	POP	BC
+	POP	BC
+	INC	HL
+	LD	BC,(HL)
+	LD	(IX+-4),BC
+;  120	    
+;  121	    const unsigned int x = row << SHIFTBY;
+	LD	A,(IX+15)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	(IX+-7),HL
+;  122	    const uint8_t y = column << SHIFTBY;
+	LD	A,(IX+18)
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	LD	(IX+-1),A
+;  123	
+;  124	    // if is a pipe and is filled with water, fill blue
+;  125	    if(IS_PIPE(tile) && tile.data.hasWater)
+	LD	HL,(IX+9)
+	OR	A,A
+	LD	BC,1
+	SBC	HL,BC
+	JR	NZ,L_37
+	LD	A,(IX+6)
+	OR	A,A
+	JR	Z,L_37
+;  126	        drawFilledPipe(sprite, x, y);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+-7)
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_drawFilledPipe
+	POP	BC
+	POP	BC
+	POP	BC
+;  127	    else
+	JR	L_38
+L_37:
+;  128	        drawSpriteWithOffset(sprite, x, y);
+	LD	IY,(_curLevel)
+	LD	A,(IX+-1)
+	ADD	A,(IY+3)
+	LD	C,A
+	LD	IY,(_curLevel)
+	LD	A,(IY+2)
+	UEXT	HL
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-7)
+	LD	L,A
+	ADD	HL,BC
+	PUSH	HL
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_drawSprite
+	POP	BC
+	POP	BC
+	POP	BC
+;  129		
+;  130			
+;  131	}
+L_38:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _drawTile ***************************
+;Name                         Addr/Register   Size   Type
+;_curLevel                           IMPORT      3   variable
+;_drawSprite                         IMPORT  -----   function
+;_drawFilledPipe                     STATIC  -----   function
+;_lookupTile                         IMPORT  -----   function
+;x                                     IX-7      3   variable
+;sprite                                IX-4      3   variable
+;y                                     IX-1      1   variable
+;column                               IX+18      1   parameter
+;row                                  IX+15      1   parameter
+;tile                                  IX+6      7   parameter
+
+
+; Stack Frame Size: 35 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  132	
+;  133	
+;  134	/* draws a sprite
+;  135	 * @param *sprite gfx_sprite_t to draw to the screen
+;  136	 * @param x X coordinate of sprite in pixels
+;  137	 * @param y Y coordinate of sprite in pixels
+;  138	 * @returns none */
+;  139	void drawSprite(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
+_drawSprite:
+	CALL	__frameset0
+;  140	    gfx_ScaledSprite_NoClip(sprite, x, y, SCALEBY, SCALEBY);
+	LD	BC,2
+	PUSH	BC
+	PUSH	BC
+	LD	C,(IX+12)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_gfx_ScaledSprite_NoClip
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;  141	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _drawSprite ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_ScaledSprite_NoClip            IMPORT  -----   function
+;y                                    IX+12      1   parameter
+;x                                     IX+9      3   parameter
+;sprite                                IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  142	
+;  143	/* draws a sprite
+;  144	 * @param *sprite gfx_sprite_t to draw to the screen
+;  145	 * @param x X coordinate of sprite in pixels
+;  146	 * @param y Y coordinate of sprite in pixels
+;  147	 * @returns none */
+;  148	void drawSprite_Transparent(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
+_drawSprite_Transparent:
+	CALL	__frameset0
+;  149	    gfx_ScaledTransparentSprite_NoClip(sprite, x, y, SCALEBY, SCALEBY);
+	LD	BC,2
+	PUSH	BC
+	PUSH	BC
+	LD	C,(IX+12)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_gfx_ScaledTransparentSprite_NoClip
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;  150	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _drawSprite_Transparent ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_ScaledTransparentSprite_NoClip      IMPORT  -----   function
+;y                                    IX+12      1   parameter
+;x                                     IX+9      3   parameter
+;sprite                                IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  151	
+;  152	/* Draws a string that is centered along the X-axis
+;  153	 * @param *string pointer to the string
+;  154	 * @param y Y coordinate
+;  155	 * @returns none */
+;  156	void centeredString(const char *string, uint8_t y) {
+_centeredString:
+	LD	HL,-1
+	CALL	__frameset
+;  157	    const uint8_t pixelLen = gfx_GetStringWidth(string);
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_gfx_GetStringWidth
+	POP	BC
+	LD	(IX+-1),L
+;  158	
+;  159	    gfx_PrintStringXY(string, SCREEN_WIDTH/2 - (pixelLen >> 1), y);
+	LD	A,(IX+9)
+	UEXT	HL
+	LD	L,A
+	PUSH	HL
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	A,1
+	CALL	__ishrs_b
+	LD	BC,HL
+	LD	HL,160
+	OR	A,A
+	SBC	HL,BC
+	PUSH	HL
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_gfx_PrintStringXY
+	POP	BC
+	POP	BC
+	POP	BC
+;  160	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _centeredString ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_PrintStringXY                  IMPORT  -----   function
+;_gfx_GetStringWidth                 IMPORT  -----   function
+;pixelLen                              IX-1      1   variable
+;y                                     IX+9      1   parameter
+;string                                IX+6      3   parameter
+
+
+; Stack Frame Size: 13 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  161	
+;  162	/* fills a pipe sprite with water and draws it onto the screen
+;  163	 * @param *sprite source sprite pointer
+;  164	 * @param row X coordinate of tile in rows/columns
+;  165	 * @param column Y coordinate of tile in rows/columns
+;  166	 * @returns none */
+;  167	static void drawFilledPipe(const gfx_sprite_t *sprite, uint8_t x, uint8_t y) {
+_drawFilledPipe:
+	LD	HL,-2
+	CALL	__frameset
+;  168	    uint8_t i;
+;  169	
+;  170	    memcpy(pipeSpriteBuffer, sprite, 66);
+	LD	BC,66
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	LD	BC,_pipeSpriteBuffer
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;  171	    
+;  172	    // search and replaced
+;  173	    for(i = 2; i < 66; i++) {
+	LD	(IX+-1),2
+	JR	L_46
+L_44:
+;  174	        const uint8_t color = pipeSpriteBuffer[i];
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,_pipeSpriteBuffer
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	(IX+-2),A
+;  175	
+;  176	        if(color == COLOR_GRAY)
+	CP	A,9
+	JR	NZ,L_45
+;  177	            pipeSpriteBuffer[i] = gfx_RGBTo1555(0, 0, 255);
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,BC
+	LD	(HL),31
+;  178	    }
+L_45:
+	INC	(IX+-1)
+L_46:
+	LD	A,(IX+-1)
+	CP	A,66
+	JR	C,L_44
+;  179	
+;  180	    drawSpriteWithOffset((gfx_sprite_t*)pipeSpriteBuffer, x, y);
+	LD	IY,(_curLevel)
+	LD	A,(IY+3)
+	ADD	A,(IX+12)
+	LD	C,A
+	LD	IY,(_curLevel)
+	LD	A,(IY+2)
+	UEXT	HL
+	LD	L,A
+	LD	DE,HL
+	LD	B,0
+	PUSH	BC
+	LD	A,(IX+9)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,DE
+	PUSH	HL
+	LD	BC,_pipeSpriteBuffer
+	PUSH	BC
+	CALL	_drawSprite
+	POP	BC
+	POP	BC
+	POP	BC
+;  181	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _drawFilledPipe ***************************
+;Name                         Addr/Register   Size   Type
+;_curLevel                           IMPORT      3   variable
+;_drawSprite                         IMPORT  -----   function
+;_pipeSpriteBuffer                   IMPORT  unknown variable
+;_memcpy                             IMPORT  -----   function
+;color                                 IX-2      1   variable
+;i                                     IX-1      1   variable
+;y                                    IX+12      1   parameter
+;x                                     IX+9      1   parameter
+;sprite                                IX+6      3   parameter
+
+
+; Stack Frame Size: 17 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  182	
+;  183	
+;  184	/* redraws a tile at a given coordinate
+;  185	 * @param row X coordinate of tile in rows/columns
+;  186	 * @param column Y coordinate of tile in rows/columns
+;  187	 * @returns none */
+;  188	void updateTile(uint8_t x, uint8_t y) 
+;  189	{
+_updateTile:
+	LD	HL,-7
+	CALL	__frameset
+;  190	    drawTile(getTile(x, y), x, y);
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+6)
+	PUSH	BC
+	LD	C,(IX+9)
+	PUSH	BC
+	LD	C,(IX+6)
+	PUSH	BC
+	PEA	IX+-7
+	CALL	_getTile
+	POP	BC
+	POP	BC
+	POP	BC
+	PUSH	HL
+	CALL	_drawTile
+	POP	BC
+	POP	BC
+	POP	BC
+;  191	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _updateTile ***************************
+;Name                         Addr/Register   Size   Type
+;_getTile                            IMPORT  -----   function
+;_drawTile                           IMPORT  -----   function
+;y                                     IX+9      1   parameter
+;x                                     IX+6      1   parameter
+
+
+; Stack Frame Size: 19 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  192	
+;  193	void erasePlayer() {
+_erasePlayer:
+	LD	HL,-14
+	CALL	__frameset
+;  194		const tile_t tile = getTile(player.x, player.y);
+	LD	A,(_player+1)
+	LD	C,A
+	LD	A,(_player)
+	LD	B,0
+	PUSH	BC
+	LD	C,A
+	PUSH	BC
+	PEA	IX+-14
+	CALL	_getTile
+	POP	BC
+	POP	BC
+	POP	BC
+	LEA	DE,IX+-7
+	LD	BC,7
+	LDIR	
+;  195		drawTile(tile, player.x, player.y);
+	LD	IY,0
+	LD	A,(_player+1)
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	LD	A,(_player)
+	LD	C,A
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
+	LEA	HL,IX+-7
+	LD	BC,7
+	ADD	IY,SP
+	LD	DE,IY
+	LDIR	
+	CALL	_drawTile
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;  196	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _erasePlayer ***************************
+;Name                         Addr/Register   Size   Type
+;_drawTile                           IMPORT  -----   function
+;_player                             IMPORT     10   variable
+;_getTile                            IMPORT  -----   function
+;tile                                  IX-7      7   variable
+
+
+; Stack Frame Size: 20 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  197	
+;  198	
+;  199	void drawPlayer() {
+_drawPlayer:
+	LD	HL,-7
+	CALL	__frameset
+;  200	    Position pos = realPlayerPosition();
+	PEA	IX+-7
+	CALL	_realPlayerPosition
+	POP	BC
+	LEA	DE,IX+-2
+	LD	BC,2
+	LDIR	
+;  201	
+;  202	    
+;  203	
+;  204	    if(player.isMoving)
+	LD	A,(_player+5)
+	OR	A,A
+	JR	Z,L_58
+;  205	    {
+;  206	        if((animationTimer >> 2) & 1)
+	LD	A,(_animationTimer)
+	UEXT	HL
+	LD	L,A
+	LD	A,2
+	CALL	__ishrs_b
+	LD	A,L
+	AND	A,1
+	UEXT	HL
+	LD	L,A
+	CALL	__icmpzero
+	JR	Z,L_56
+;  207	            playerS = (playerS == playerSpriteRun1) ? playerSpriteRun2 : playerSpriteRun1;
+	LD	BC,_character_run_1_data
+	LD	HL,(_playerS)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_53
+	LD	BC,_character_run_2_data
+	LD	(IX+-5),BC
+	JR	L_54
+L_53:
+	LD	(IX+-5),BC
+L_54:
+	LD	BC,(IX+-5)
+	LD	(_playerS),BC
+L_56:
+;  208	        drawSpriteWithOffset_Transparent(playerS, pos.x, pos.y);
+	LD	IY,(_curLevel)
+	LD	A,(IY+3)
+	ADD	A,(IX+-1)
+	LD	C,A
+	LD	IY,(_curLevel)
+	LD	A,(IY+2)
+	UEXT	HL
+	LD	L,A
+	LD	DE,HL
+	LD	B,0
+	PUSH	BC
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,DE
+	PUSH	HL
+	LD	BC,(_playerS)
+	PUSH	BC
+	CALL	_drawSprite_Transparent
+	POP	BC
+	POP	BC
+	POP	BC
+;  209	    } else
+	JR	L_59
+L_58:
+;  210	    {
+;  211	    	drawSpriteWithOffset_Transparent(playerSprite, pos.x, pos.y);
+	LD	IY,(_curLevel)
+	LD	A,(IY+3)
+	ADD	A,(IX+-1)
+	LD	C,A
+	LD	IY,(_curLevel)
+	LD	A,(IY+2)
+	UEXT	HL
+	LD	L,A
+	LD	DE,HL
+	LD	B,0
+	PUSH	BC
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,DE
+	PUSH	HL
+	LD	BC,_character_still_data
+	PUSH	BC
+	CALL	_drawSprite_Transparent
+	POP	BC
+	POP	BC
+	POP	BC
+;  212	    }
+;  213	}
+L_59:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _drawPlayer ***************************
+;Name                         Addr/Register   Size   Type
+;_character_still_data               IMPORT     66   variable
+;_curLevel                           IMPORT      3   variable
+;_drawSprite_Transparent             IMPORT  -----   function
+;_character_run_2_data               IMPORT     66   variable
+;_playerS                            STATIC      3   variable
+;_character_run_1_data               IMPORT     66   variable
+;_animationTimer                     STATIC      1   variable
+;_player                             IMPORT     10   variable
+;_realPlayerPosition                 IMPORT  -----   function
+;temp51                                IX-5      3   variable
+;pos                                   IX-2      2   variable
+
+
+; Stack Frame Size: 13 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  214	
+;  215	
+;  216	/* returns the actual screen coords of the player
+;  217	 * - normally stored as a tile location
+;  218	 * @returns position struct */
+;  219	Position realPlayerPosition() {
+_realPlayerPosition:
+	LD	HL,-4
+	CALL	__frameset
+;  220	    Position pos = facingOffset(player.direction);
+	LD	BC,(_player+2)
+	PUSH	BC
+	PEA	IX+-4
+	CALL	_facingOffset
+	POP	BC
+	POP	BC
+	LEA	DE,IX+-2
+	LD	BC,2
+	LDIR	
+;  221	    pos.x = (player.x << SHIFTBY) + player.dx * (char)pos.x;
+	LD	A,(_player)
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	LD	D,A
+	LD	A,(_player+8)
+	LD	B,A
+	LD	C,(IX+-2)
+	MLT	BC
+	LD	A,D
+	ADD	A,C
+	LD	(IX+-2),A
+;  222	    pos.y = (player.y << SHIFTBY) + player.dy * (char)pos.y;
+	LD	A,(_player+1)
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	ADD	A,A
+	LD	D,A
+	LD	A,(_player+9)
+	LD	B,A
+	LD	C,(IX+-1)
+	MLT	BC
+	LD	A,D
+	ADD	A,C
+	LD	(IX+-1),A
+;  223	
+;  224	    return pos;
+	LEA	HL,IX+6
+	LD	DE,(HL)
+	LEA	HL,IX+-2
+	LD	BC,2
+	LDIR	
+	LD	HL,(IX+6)
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _realPlayerPosition ***************************
+;Name                         Addr/Register   Size   Type
+;_player                             IMPORT     10   variable
+;_facingOffset                       IMPORT  -----   function
+;pos                                   IX-2      2   variable
+
+
+; Stack Frame Size: 13 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _character_run_2_data:ROM
+	XREF _character_run_1_data:ROM
+	XREF _character_still_data:ROM
+	XREF _animateWater:ROM
+	XREF _lookupTile:ROM
+	XREF _setTile:ROM
+	XREF _getTile:ROM
+	XREF _facingOffset:ROM
+	XREF _pipeSpriteBuffer:ROM
+	XREF _curLevel:ROM
+	XREF _player:ROM
+	XREF _Array_Clear:ROM
+	XREF _Array_Get:ROM
+	XREF _Array_RemoveAt:ROM
+	XREF _Array_Append:ROM
+	XREF _gfx_GetStringWidth:ROM
+	XREF _gfx_ScaledTransparentSprite_NoClip:ROM
+	XREF _gfx_ScaledSprite_NoClip:ROM
+	XREF _gfx_PrintStringXY:ROM
+	XREF _memcpy:ROM
+	XREF __irems:ROM
+	XREF __frameset0:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XREF __case8:ROM
+	XREF __ishrs_b:ROM
+	XDEF _realPlayerPosition
+	XDEF _drawPlayer
+	XDEF _erasePlayer
+	XDEF _updateTile
+	XDEF _centeredString
+	XDEF _drawSprite_Transparent
+	XDEF _drawSprite
+	XDEF _drawTile
+	XDEF _removeAnimation
+	XDEF _doAnimations
+	XDEF _initAnimations
+	XDEF _animationTimer
+	XDEF _animationTile
+	END

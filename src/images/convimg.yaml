@@ -1,0 +1,40 @@
+palettes:
+  - name: mypalette
+    images: automatic
+    
+converts:
+  - name: myimages
+    palette: mypalette
+    images:
+      - block.png
+      - pipe_bot_right.png
+      - pipe_bot_left.png
+      - pipe_horizontal.png
+      - pipe_vertical.png
+      - pipe_top_right.png
+      - pipe_top_left.png
+      - pipe_all.png
+      - spout_top.png
+      - spout_bot.png
+      - spout_right.png
+      - spout_left.png
+      - handle.png
+      - fire_1.png
+      - fire_2.png
+      - blue_fire_1.png
+      - blue_fire_2.png
+      - floor.png
+      - character_still.png
+      - character_run_1.png
+      - character_run_2.png
+      - water_1.png
+      - star.png
+      - mountain.png
+
+outputs:
+  - type: c
+    include-file: gfx.h
+    palettes:
+      - mypalette
+    converts:
+      - myimages
