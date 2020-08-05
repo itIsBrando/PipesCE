@@ -2,17 +2,35 @@ import pyperclip
 
 
 class rleData:
-    def __init__(self, data, size):
-        self.data = data
-        self.size = size
+    def __init__(self, data, count):
+        if count > 0:
+            self.data = data
+        else:
+            self.data = data | 0x80
+        
+        self.count = count
 
+
+    @staticmethod
+    def size(input):
+        s = 0
+        for i in input:
+            if i.count > 0:
+                s += 2
+            else:
+                s += 1
+
+        return s
 
     @staticmethod
     def print(list):
         string = '{\n	'
 
         for i in list:
-            string += str(i.size) + ', ' + str(i.data) + ', '
+            if i.count > 0:
+                string += str(i.count) + ', ' + str(i.data) + ', '
+            else:
+                string += str(i.data) + ', '
         
         string = string.rstrip(', ') + '\n};'
         print(string)
@@ -27,6 +45,9 @@ class rleData:
 
         for i in input:
             if prev != i and prev != None:
+                if count == 1:
+                    count = 0
+                
                 out.append(rleData(prev, count))
                 count = 0
 
@@ -34,7 +55,10 @@ class rleData:
             prev = i
                 
         out.append(rleData(input[-1], count))
-        print('encoded size: ', len(out) * 2, ' original size: ', len(input), 'saved: ', len(input) - len(out) * 2)
+
+        nsize = rleData.size(out)
+        print('encoded size: ', nsize, ' original size: ', len(input), 'saved: ', len(input) - nsize)
+        print(nsize * 100 / len(input), "% of the original size", sep='')
         return out
 
     @staticmethod
@@ -42,27 +66,49 @@ class rleData:
         out = []
 
         for e in input:
-            for _ in range(0, e.size):
-                out.append(e.data)
+            if e.data & 0x80 == 0x80:
+                out.append(e.data - 0x80)
+            else:
+                for _ in range(0, e.count):
+                    out.append(e.data)
 
         return out
 
+    
+    # converts an rleData array to an int array
+    @staticmethod
+    def toInt(input):
+        out = []
+        for i in input:
+            if i.count > 0:
+                out.append(i.count)
+            out.append(i.data)
+        return out
+
+    @staticmethod
+    def decodeInt(input):
+        out = []
+
+        for i in range(0, len(input), 2):
+            if(input[i] & 0x80 == 0x80):
+                out.append(rleData(input[i], 0))
+                i -= 1
+            else:
+                out.append(rleData(input[i +1], input[i]))
+        
+        return rleData.decode(out)
+
+""" 
+paste data to compress here
+"""
 original = [
-	1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	1, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  8, 10,  1,
-	1,  0,  0,  0,  0,  0, 20,  5,  0,  0,  0,  0,  5,  1,
-	1,  0,  0,  0,  0,  0,  0,  5,  0,  0, 20,  0,  5,  1,
-	1, 10,  8,  8, 10,  7, 20, 10, 20, 10,  8,  8, 10,  1,
-	1,  5, 18, 18, 18,  5, 20, 20, 20,  5, 18, 18,  5,  1,
-	1,  5, 18, 18, 18,  3,  7,  0,  0,  5, 18, 18,  5,  1,
-	1, 10, 18, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  1,
-	1,  5, 18,  5,  0,  0,  0,  0,  6, 9,   0, 20,  0,  1,
-	1,  5, 18,  3,  7,  0, 20,  6,  9,  0,  0,  0,  0,  1,
-	1, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  8, 10,  1,
-	1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	6,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  7,
-	5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  5,
-	3,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9
+1,4,1,1,1,1,1,
+1,3,5,8,8,10,1,
+1,0,0,0,0,0,1,
+1,0,21,0,0,0,1,
+1,2,0,0,0,0,1,
+1,1,1,1,1,1,1
+
 ]
 e = rleData.encode(original)
 

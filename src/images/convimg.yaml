@@ -30,6 +30,7 @@ converts:
       - water_1.png
       - star.png
       - mountain.png
+      - rotator.png
 
 outputs:
   - type: c

@@ -55,6 +55,24 @@ void drainWater() {
     player.isWaterFlowing = false;
 }
 
+void rotateTile(uint8_t x, uint8_t y) {
+    uint8_t i;
+    uint8_t ogTile[] = {TILE_PIPE_VERTICAL, TILE_PIPE_HORIZONTAL, TILE_PIPE_TOP_LEFT, TILE_PIPE_TOP_RIGHT, TILE_PIPE_BOT_RIGHT, TILE_PIPE_BOT_LEFT};
+    uint8_t newTile[] = {TILE_PIPE_HORIZONTAL, TILE_PIPE_VERTICAL, TILE_PIPE_TOP_RIGHT, TILE_PIPE_BOT_RIGHT, TILE_PIPE_BOT_LEFT, TILE_PIPE_TOP_LEFT};
+    tile_t *tile = getTilePointer(x, y);
+
+    for(i = 0; i < sizeof(ogTile); i++)
+    {
+        if(tile->id == ogTile[i])
+        {
+            
+            tile->id = newTile[i];
+            setTile(x, y, tile);
+            return;
+        }
+    }
+
+}
 
 void initFlows() {
     const uint8_t width = curLevel.width;
@@ -78,6 +96,9 @@ void initFlows() {
             {
                 createFlow(x, y, pipeFromIndex(tile.id)->directions);
                 keepWaterTick = true;
+            } else if(tile.type == TYPE_ROTATE)
+            {
+                rotateTile(x, y);
             }
         }
         
@@ -143,12 +164,12 @@ bool doFlow(flow_t *self) {
         {
             Position pos = facingOffset(directions[i]);
             tile_t *tile;
+            bool directionsMatch;
             addPosition(&pos, self->position);
             tile = getTilePointerSafely(pos.x, pos.y);
 
-            dbg_sprintf(dbgerr, "New Pos: (%d, %d), tile:%d, type: %d isFire: %d\n", pos.x, pos.y, tile->id, tile->type, tile->type == TYPE_FIRE);
-            
-            if(tile->type == TYPE_PIPE && !tile->data.hasWater)
+            directionsMatch = (1<<(uint8_t)getOppositeDirection(directions[i])) & pipeFromIndex(tile->id)->directions;
+            if(tile->type == TYPE_PIPE && !tile->data.hasWater && directionsMatch )
             {
                 flow_t f;
 

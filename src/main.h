@@ -55,7 +55,8 @@ typedef enum
 {
 	TYPE_BLOCK,
 	TYPE_PIPE,
-	TYPE_FIRE
+	TYPE_FIRE,
+	TYPE_ROTATE
 } tiletype_t;
 
 typedef union 

@@ -30,6 +30,7 @@ extern "C" {
 #include "water_1.h"
 #include "star.h"
 #include "mountain.h"
+#include "rotator.h"
 
 #ifdef __cplusplus
 }

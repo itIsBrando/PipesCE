@@ -100,21 +100,34 @@ bool getLevelCompletion(uint8_t level) {
     return save.completed[level];
 }
 
+
+/* Fully compatibilty with normal RLE compression.
+ * However, data should be optimized.
+ * Any single-run data byte should have its highest bit set and data byte omitted
+ * @param *data source of data
+ * @param **dest memory location of a pointer to uint8_t
+ * @param size number of bytes of *data
+ * @returns void */
 void rleDecompress(uint8_t *data, uint8_t **dest, size_t size) {
     uint8_t j;
     uint24_t i, out = 0;
 
-    if(size & 1)
-        abort();
-
-    for(i = 0; i <= size; i += 2) {
+    for(i = 0; i <= size; i++)
+    {
         const uint8_t count = data[i];
-        /* for(j = 0; j < data[i]; j++)
+
+        // if bit 7 is set, then this is a data byte and needs masking
+        if(count & 0x80)
         {
-            (*dest)[out++] = data[i + 1];
-        } */
-        memset((*dest + out), data[i + 1], count);
-        out += count;
+            (*dest)[out++] = count & 0x7F;
+        } else
+        {
+            // if we have a size, copy data to our buffer
+            memset((*dest + out), data[i + 1], count);
+            out += count;
+            i++; // skip over the data byte
+        }
+        
     }
 
 }

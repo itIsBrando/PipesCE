@@ -25,9 +25,6 @@ bool moveTile(uint8_t x, uint8_t y, Direction dir);
 void updatePlayer();
 void movePlayer(char dx, char dy);
 
-// D1A81C = curLevel.data
-// D03269 = flows.data
-// D03219 = flows
 const pipe_t *pipeFromIndex(const uint8_t tile);
 
 tilesprite_t lookupTile(uint8_t index);

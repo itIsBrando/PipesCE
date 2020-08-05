@@ -225,11 +225,32 @@ bool moveTile(uint8_t x, uint8_t y, Direction dir) {
 	const Position pos = facingOffset(dir);
 	const uint8_t newX = x + (char)pos.x, newY = y + (char)pos.y;
 	const tile_t newTile = chkCollision(newX, newY);
+	const bool isRotate = newTile.type == TYPE_ROTATE;
 	tile_t tile = getTile(x, y);
 
-	if (newTile.id == 0 && isPushable(tile.id)) {
+	if ((isRotate || newTile.id == 0) && isPushable(tile.id))
+	{
+		if(tile.type == TYPE_ROTATE && tile.id != TILE_ROTATION)
+		{
+			// is there is a pipe on the rotation tile and we moved it off of the rotation tile,
+			// then replace the id of the rotation tile and fix pipe type
+			tile.type = TYPE_PIPE;
+			setTile(newX, newY, &tile);
+
+			tile.type = TYPE_ROTATE;
+			tile.id = TILE_ROTATION;
+			tile.flags = 0;
+			setTile(x, y, &tile);
+			return true;
+		} else if(isRotate)
+		{
+			tile.type = TYPE_ROTATE;
+		}
+
 		setTile(newX, newY, &tile);
 		setTile(x, y, NULL);
+
+
 		return true;
 	}
 	

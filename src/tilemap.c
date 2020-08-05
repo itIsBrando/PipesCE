@@ -57,6 +57,9 @@ void loadMap(mapstore_t map) {
 		if(tiledata.id == TILE_FIRE_1 || tiledata.id == TILE_BLUE_FIRE_1)
 		{
 			createFire(t);
+		} else if (tiledata.id == TILE_ROTATION)
+		{
+			t->type = TYPE_ROTATE;
 		} else
 		{	
 			t->data.hasWater = false;
