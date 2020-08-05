@@ -816,13 +816,10 @@ _worldMaps:
 	DB	0
 	SEGMENT BSS
 _curLevel:
-	DS	3
+	DS	9
 	SEGMENT DATA
 _levelNumber:
 	DB	0
-	SEGMENT BSS
-_lev:
-	DS	81
 	SEGMENT TEXT
 _WorldMap:
 	DB	15
@@ -1027,6 +1024,69 @@ _WorldMap:
 	DB	8
 	DB	1
 	DB	9
+_WorldMapData:
+	DB	1
+	DB	1
+	DB	14
+	DB	15
+	DW24	_WorldMap
+	DB	202
+	SEGMENT DATA
+_maps:
+	DB	4
+	DB	1
+	DB	8
+	DB	7
+	DW24	_lvl1
+	DB	0
+	DB	1
+	DB	1
+	DB	8
+	DB	6
+	DW24	_lvl2
+	DB	30
+	DB	1
+	DB	2
+	DB	8
+	DB	5
+	DW24	_lvl3
+	DB	32
+	DB	2
+	DB	3
+	DB	8
+	DB	10
+	DW24	_lvl4
+	DB	66
+	DB	4
+	DB	3
+	DB	7
+	DB	7
+	DW24	_lvl5
+	DB	0
+	DB	3
+	DB	1
+	DB	10
+	DB	8
+	DW24	_lvl6
+	DB	58
+	DB	3
+	DB	1
+	DB	10
+	DB	6
+	DW24	_lvl7
+	DB	42
+	DB	3
+	DB	1
+	DB	10
+	DB	9
+	DW24	_lvl8
+	DB	80
+	DB	1
+	DB	1
+	DB	10
+	DB	11
+	DW24	_lvl9
+	DB	94
 ;    1	/*
 ;    2	 *--------------------------------------
 ;    3	 * Program Name:
@@ -1120,69 +1180,83 @@ _WorldMap:
 ;   91		{"SNAKE PIPE", 7, 10, 0, 0, 9, 0}
 ;   92	};
 ;   93	
-;   94	level_t *curLevel;
+;   94	level_t curLevel;
 ;   95	static uint8_t levelNumber = 0;
 ;   96	
-;   97	static level_t lev[9];
-;   98	
-;   99	#define SIZEOF_LEV (sizeof(lev) / sizeof(lev[0]))
-;  100	#define SIZEOF_POSITIONS (sizeof(worldMaps) / sizeof(worldMaps[0]))
-;  101	
-;  102	// RLE = 8 bytes
-;  103	static const uint8_t WorldMap[] = {
+;   97	#define SIZEOF_MAPS (sizeof(maps) / sizeof(maps[0]))
+;   98	#define SIZEOF_POSITIONS (sizeof(worldMaps) / sizeof(worldMaps[0]))
+;   99	
+;  100	// RLE = 8 bytes
+;  101	static const uint8_t WorldMap[] = {
+;  102		/* 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+;  103		1, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  8, 10,  1,
+;  104		1,  0,  0,  0,  0,  0, 20,  5,  0,  0,  0,  0,  5,  1,
+;  105		1,  0,  0,  0,  0,  0,  0,  5,  0,  0, 20,  0,  5,  1,
+;  106		1, 10,  8,  8, 10,  7, 20, 10, 20, 10,  8,  8, 10,  1,
+;  107		1,  5, 18, 18, 18,  5, 20, 20, 20,  5, 18, 18,  5,  1,
+;  108		1,  5, 18, 18, 18,  3,  7,  0,  0,  5, 18, 18,  5,  1,
+;  109		1, 10, 18, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  1,
+;  110		1,  5, 18,  5,  0,  0,  0,  0,  6, 9,   0, 20,  0,  1,
+;  111		1,  5, 18,  3,  7,  0, 20,  6,  9,  0,  0,  0,  0,  1,
+;  112		1, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  8, 10,  1,
+;  113		1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+;  114		6,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  7,
+;  115		5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  5
+;  116		3,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,
+;  117	*/
+;  118		15, 1, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 1, 8, 1, 10, 2, 1, 5, 0, 1, 20, 1, 5, 4, 0, 1, 5, 2, 1, 6, 0, 1, 5, 2, 0, 1, 20, 1, 0, 1, 5, 2, 1, 1, 10, 2, 8, 1, 10, 1, 7, 1, 20, 1, 10, 1, 20, 1, 10, 2, 8, 1, 10, 2, 1, 1, 5, 3, 18, 1, 5, 3, 20, 1, 5, 2, 18, 1, 5, 2, 1, 1, 5, 3, 18, 1, 3, 1, 7, 2, 0, 1, 5, 2, 18, 1, 5, 2, 1, 1, 10, 1, 18, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 1, 1, 5, 1, 18, 1, 5, 4, 0, 1, 6, 1, 9, 1, 0, 1, 20, 1, 0, 2, 1, 1, 5, 1, 18, 1, 3, 1, 7, 1, 0, 1, 20, 1, 6, 1, 9, 4, 0, 2, 1, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 1, 8, 1, 10, 15, 1, 1, 6, 12, 8, 1, 7, 1, 5, 12, 0, 1, 5, 1, 3, 12, 8, 1, 9
+;  119	};
+;  120	
+;  121	const mapstore_t WorldMapData = {
+;  122		1, 1, 14, 15, WorldMap, sizeof(WorldMap)
+;  123	};
+;  124	
+;  125	mapstore_t maps[] = {
 	SEGMENT CODE
-;  104		/* 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-;  105		1, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  8, 10,  1,
-;  106		1,  0,  0,  0,  0,  0, 20,  5,  0,  0,  0,  0,  5,  1,
-;  107		1,  0,  0,  0,  0,  0,  0,  5,  0,  0, 20,  0,  5,  1,
-;  108		1, 10,  8,  8, 10,  7, 20, 10, 20, 10,  8,  8, 10,  1,
-;  109		1,  5, 18, 18, 18,  5, 20, 20, 20,  5, 18, 18,  5,  1,
-;  110		1,  5, 18, 18, 18,  3,  7,  0,  0,  5, 18, 18,  5,  1,
-;  111		1, 10, 18, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  1,
-;  112		1,  5, 18,  5,  0,  0,  0,  0,  6, 9,   0, 20,  0,  1,
-;  113		1,  5, 18,  3,  7,  0, 20,  6,  9,  0,  0,  0,  0,  1,
-;  114		1, 10,  8,  8, 10,  8,  8, 10,  8,  8, 10,  8, 10,  1,
-;  115		1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-;  116		6,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  7,
-;  117		5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  5
-;  118		3,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,
-;  119	*/
-;  120		15, 1, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 1, 8, 1, 10, 2, 1, 5, 0, 1, 20, 1, 5, 4, 0, 1, 5, 2, 1, 6, 0, 1, 5, 2, 0, 1, 20, 1, 0, 1, 5, 2, 1, 1, 10, 2, 8, 1, 10, 1, 7, 1, 20, 1, 10, 1, 20, 1, 10, 2, 8, 1, 10, 2, 1, 1, 5, 3, 18, 1, 5, 3, 20, 1, 5, 2, 18, 1, 5, 2, 1, 1, 5, 3, 18, 1, 3, 1, 7, 2, 0, 1, 5, 2, 18, 1, 5, 2, 1, 1, 10, 1, 18, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 1, 1, 5, 1, 18, 1, 5, 4, 0, 1, 6, 1, 9, 1, 0, 1, 20, 1, 0, 2, 1, 1, 5, 1, 18, 1, 3, 1, 7, 1, 0, 1, 20, 1, 6, 1, 9, 4, 0, 2, 1, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 1, 8, 1, 10, 15, 1, 1, 6, 12, 8, 1, 7, 1, 5, 12, 0, 1, 5, 1, 3, 12, 8, 1, 9
-;  121	};
-;  122	
-;  123	void main(void) {
+;  126		{4, 1, 8, 7, lvl1,   false},
+;  127		{1, 1, 8, 6, lvl2,   sizeof(lvl2)},
+;  128		{1, 2, 8, 5, lvl3,   sizeof(lvl3)},
+;  129		{2, 3, 8, 10, lvl4,  sizeof(lvl4)},
+;  130	 	{4, 3, 7, 7, lvl5,   false},
+;  131	 	{3, 1, 10, 8, lvl6,  sizeof(lvl6)},
+;  132	 	{3, 1, 10, 6, lvl7,  sizeof(lvl7)},
+;  133	 	{3, 1, 10, 9, lvl8,  sizeof(lvl8)},
+;  134	 	{1, 1, 10, 11, lvl9, sizeof(lvl9)},
+;  135	};
+;  136	
+;  137	void main(void) {
 _main:
 	LD	HL,-1
 	CALL	__frameset
-;  124		uint8_t kGroup6;
-;  125	
-;  126		/* 
-;  127		uint8_t i;
-;  128		Array array; */
-;  129	
-;  130		*(char*)0xFD0000 = 1;
-;  131		
-;  132		/* Array_New(&array, 10, sizeof(uint8_t));
-;  133	
-;  134		for(i = 0; i < Array_Len(&array); i++) {
-;  135			uint8_t *ii;
-;  136			uint8_t write = ((i+1)<<2);
-;  137			Array_Set(&array, &write, i);
-;  138			ii = (uint8_t*)Array_Get(&array, i);
-;  139			dbg_sprintf(dbgerr, "before %d: %d\n", i, *ii);
-;  140		}
-;  141	
-;  142		//((flow_t*)Array_Get(&array, 2))->position.x = 23;
-;  143		Array_RemoveAt(&array, 1);
-;  144		
-;  145		for(i = 0; i < Array_Len(&array); i++) {
-;  146			uint8_t *ii = Array_Get(&array, i);
-;  147			dbg_sprintf(dbgerr, "after %d: %d\n", i, *ii);
-;  148		}
-;  149	
-;  150		Array_Destroy(&array);
-;  151	 */
-;  152	    Array_New(&flows, 30, sizeof(flow_t));
+;  138		uint8_t kGroup6;
+;  139	
+;  140		/* 
+;  141		uint8_t i;
+;  142		Array array; */
+;  143	
+;  144		*(char*)0xFD0000 = 1;
+;  145		
+;  146		/* Array_New(&array, 10, sizeof(uint8_t));
+;  147	
+;  148		for(i = 0; i < Array_Len(&array); i++) {
+;  149			uint8_t *ii;
+;  150			uint8_t write = ((i+1)<<2);
+;  151			Array_Set(&array, &write, i);
+;  152			ii = (uint8_t*)Array_Get(&array, i);
+;  153			dbg_sprintf(dbgerr, "before %d: %d\n", i, *ii);
+;  154		}
+;  155	
+;  156		//((flow_t*)Array_Get(&array, 2))->position.x = 23;
+;  157		Array_RemoveAt(&array, 1);
+;  158		
+;  159		for(i = 0; i < Array_Len(&array); i++) {
+;  160			uint8_t *ii = Array_Get(&array, i);
+;  161			dbg_sprintf(dbgerr, "after %d: %d\n", i, *ii);
+;  162		}
+;  163	
+;  164		Array_Destroy(&array);
+;  165	 */
+;  166	    Array_New(&flows, 30, sizeof(flow_t));
 	LD	BC,5
 	PUSH	BC
 	LD	BC,30
@@ -1195,7 +1269,7 @@ _main:
 	POP	BC
 	POP	BC
 	POP	BC
-;  153		Array_New(&animationTile, 40, sizeof(animation_t));
+;  167		Array_New(&animationTile, 40, sizeof(animation_t));
 	LD	BC,4
 	PUSH	BC
 	LD	BC,40
@@ -1206,7 +1280,7 @@ _main:
 	POP	BC
 	POP	BC
 	POP	BC
-;  154		memset(&player, 0, sizeof(struct player_t));
+;  168		memset(&player, 0, sizeof(struct player_t));
 	LD	BC,10
 	PUSH	BC
 	LD	BC,0
@@ -1217,11 +1291,11 @@ _main:
 	POP	BC
 	POP	BC
 	POP	BC
-;  155		
-;  156		// initialize graphics
-;  157		gfx_Begin();
+;  169		
+;  170		// initialize graphics
+;  171		gfx_Begin();
 	CALL	_gfx_Begin
-;  158		gfx_SetPalette(mypalette, sizeof_mypalette, 0);
+;  172		gfx_SetPalette(mypalette, sizeof_mypalette, 0);
 	LD	BC,0
 	PUSH	BC
 	LD	BC,36
@@ -1232,256 +1306,38 @@ _main:
 	POP	BC
 	POP	BC
 	POP	BC
-;  159		gfx_SetTransparentColor(COLOR_TRANSPARENT);
+;  173		gfx_SetTransparentColor(COLOR_TRANSPARENT);
 	LD	BC,5
 	PUSH	BC
 	CALL	_gfx_SetTransparentColor
 	POP	BC
-;  160	
-;  161		loadData();
+;  174	
+;  175		loadData();
 	CALL	_loadData
-;  162	
-;  163		waterSpriteBuffer[0] = waterSpriteBuffer[1] = 8;
-;  164		
-;  165		createMap(&lev[0], 4, 1, 8, 7, lvl1, false);
-	LD	BC,0
-	PUSH	BC
-	LD	BC,_lvl1
-	PUSH	BC
-	LD	BC,7
-	PUSH	BC
-	LD	BC,8
-	PUSH	BC
-	LD	BC,1
-	PUSH	BC
-	LD	BC,4
-	PUSH	BC
-	LD	BC,_lev
-	PUSH	BC
+;  176	
+;  177		waterSpriteBuffer[0] = waterSpriteBuffer[1] = 8;
 	LD	HL,_waterSpriteBuffer
 	INC	HL
 	LD	IY,_waterSpriteBuffer
 	LD	(HL),8
+;  178		
+;  179		gfx_SetDraw(gfx_buffer);
+	LD	BC,1
+	PUSH	BC
 	LD	A,(IY+1)
 	LD	(_waterSpriteBuffer),A
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  166		createMap(&lev[1], 1, 1, 8, 6, lvl2, (bool)sizeof(lvl2));
-	LD	BC,30
-	PUSH	BC
-	LD	BC,_lvl2
-	PUSH	BC
-	LD	BC,6
-	PUSH	BC
-	LD	BC,8
-	PUSH	BC
-	LD	BC,1
-	PUSH	BC
-	PUSH	BC
-	LD	BC,_lev+9
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  167		createMap(&lev[2], 1, 2, 8, 5, lvl3, (bool)(sizeof(lvl3)));
-	LD	BC,32
-	PUSH	BC
-	LD	BC,_lvl3
-	PUSH	BC
-	LD	BC,5
-	PUSH	BC
-	LD	BC,8
-	PUSH	BC
-	LD	BC,2
-	PUSH	BC
-	LD	BC,1
-	PUSH	BC
-	LD	BC,_lev+18
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  168		createMap(&lev[3], 2, 3, 8, 10, lvl4, (bool)(sizeof(lvl4)));
-	LD	BC,66
-	PUSH	BC
-	LD	BC,_lvl4
-	PUSH	BC
-	LD	BC,10
-	PUSH	BC
-	LD	BC,8
-	PUSH	BC
-	LD	BC,3
-	PUSH	BC
-	LD	BC,2
-	PUSH	BC
-	LD	BC,_lev+27
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  169		createMap(&lev[4], 4, 3, 7, 7, lvl5, false);
-	LD	BC,0
-	PUSH	BC
-	LD	BC,_lvl5
-	PUSH	BC
-	LD	BC,7
-	PUSH	BC
-	PUSH	BC
-	LD	BC,3
-	PUSH	BC
-	LD	BC,4
-	PUSH	BC
-	LD	BC,_lev+36
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  170		createMap(&lev[5], 3, 1, 10, 8, lvl6, (bool)(sizeof(lvl6)));
-	LD	BC,58
-	PUSH	BC
-	LD	BC,_lvl6
-	PUSH	BC
-	LD	BC,8
-	PUSH	BC
-	LD	BC,10
-	PUSH	BC
-	LD	BC,1
-	PUSH	BC
-	LD	BC,3
-	PUSH	BC
-	LD	BC,_lev+45
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  171		createMap(&lev[6], 3, 1, 10, 6, lvl7, (bool)(sizeof(lvl7)));
-	LD	BC,42
-	PUSH	BC
-	LD	BC,_lvl7
-	PUSH	BC
-	LD	BC,6
-	PUSH	BC
-	LD	BC,10
-	PUSH	BC
-	LD	BC,1
-	PUSH	BC
-	LD	BC,3
-	PUSH	BC
-	LD	BC,_lev+54
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  172		createMap(&lev[7], 3, 1, 10, 9, lvl8, (bool)(sizeof(lvl8)));
-	LD	BC,80
-	PUSH	BC
-	LD	BC,_lvl8
-	PUSH	BC
-	LD	BC,9
-	PUSH	BC
-	LD	BC,10
-	PUSH	BC
-	LD	BC,1
-	PUSH	BC
-	LD	BC,3
-	PUSH	BC
-	LD	BC,_lev+63
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  173		createMap(&lev[8], 1, 1, 10, 11, lvl9, (bool)(sizeof(lvl9)));
-	LD	BC,94
-	PUSH	BC
-	LD	BC,_lvl9
-	PUSH	BC
-	LD	BC,11
-	PUSH	BC
-	LD	BC,10
-	PUSH	BC
-	LD	BC,1
-	PUSH	BC
-	PUSH	BC
-	LD	BC,_lev+72
-	PUSH	BC
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  174		
-;  175		// title screen
-;  176		
-;  177		gfx_SetDraw(gfx_buffer);
-	LD	BC,1
-	PUSH	BC
 	CALL	_gfx_SetDraw
 	POP	BC
-;  178	
-;  179		gfx_FillScreen(COLOR_YELLOW);
+;  180		gfx_FillScreen(COLOR_YELLOW);
 	LD	BC,1
 	PUSH	BC
 	CALL	_gfx_FillScreen
 	POP	BC
-;  180	
-;  181		levelNumber = showWorldMap();
+;  181	
+;  182		// title screen
+;  183		levelNumber = showWorldMap();
 	CALL	_showWorldMap
-;  182	
-;  183		loadMap(&lev[levelNumber]);
-	UEXT	HL
-	LD	L,A
 	LD	(_levelNumber),A
-	LD	A,9
-	CALL	__imul_b
-	LD	BC,_lev
-	ADD	HL,BC
-	PUSH	HL
-	CALL	_loadMap
-	POP	BC
 ;  184	
 ;  185		do {
 L_5:
@@ -1496,65 +1352,55 @@ L_5:
 	JR	NZ,L_1
 ;  190				levelNumber = showWorldMap();
 	CALL	_showWorldMap
-;  191				loadMap(&lev[levelNumber]);
-	UEXT	HL
-	LD	L,A
 	LD	(_levelNumber),A
-	LD	A,9
-	CALL	__imul_b
-	LD	BC,_lev
-	ADD	HL,BC
-	PUSH	HL
-	CALL	_loadMap
-	POP	BC
-;  192			}
+;  191			}
 L_1:
-;  193			
-;  194			erasePlayer();
+;  192			
+;  193			erasePlayer();
 	CALL	_erasePlayer
-;  195	
-;  196			if(kb_IsDown(kb_Key2nd)) {
+;  194	
+;  195			if(kb_IsDown(kb_Key2nd)) {
 	LD	A,(16056338)
 	AND	A,32
 	JR	Z,L_3
-;  197				player.isPulling = true;
+;  196				player.isPulling = true;
 	LD	A,1
 	LD	(_player+6),A
-;  198			} else {
+;  197			} else {
 	JR	L_4
 L_3:
-;  199				player.isPulling = false;
+;  198				player.isPulling = false;
 	XOR	A,A
 	LD	(_player+6),A
-;  200			}
+;  199			}
 L_4:
-;  201				
-;  202			tickFlows();
+;  200				
+;  201			tickFlows();
 	CALL	_tickFlows
-;  203			doAnimations();
+;  202			doAnimations();
 	CALL	_doAnimations
+;  203	
 ;  204	
-;  205	
-;  206			// pass d-pad buttons
-;  207			move(kb_Data[7]);
+;  205			// pass d-pad buttons
+;  206			move(kb_Data[7]);
 	LD	A,(16056350)
 	LD	C,A
 	LD	B,0
 	PUSH	BC
 	CALL	_move
 	POP	BC
-;  208			
-;  209			updatePlayer();
+;  207			
+;  208			updatePlayer();
 	CALL	_updatePlayer
-;  210			drawPlayer();
+;  209			drawPlayer();
 	CALL	_drawPlayer
-;  211	
-;  212			gfx_BlitBuffer();
+;  210	
+;  211			gfx_BlitBuffer();
 	LD	BC,1
 	PUSH	BC
 	CALL	_gfx_Blit
 	POP	BC
-;  213		} while(true);
+;  212		} while(true);
 	JR	L_5
 
 
@@ -1568,22 +1414,10 @@ L_4:
 ;_tickFlows                          IMPORT  -----   function
 ;_erasePlayer                        IMPORT  -----   function
 ;_kb_Scan                            IMPORT  -----   function
-;_loadMap                            IMPORT  -----   function
 ;_levelNumber                        STATIC      1   variable
 ;_showWorldMap                       IMPORT  -----   function
 ;_gfx_FillScreen                     IMPORT  -----   function
 ;_gfx_SetDraw                        IMPORT  -----   function
-;_lvl9                               STATIC     94   variable
-;_lvl8                               STATIC     80   variable
-;_lvl7                               STATIC     42   variable
-;_lvl6                               STATIC     58   variable
-;_lvl5                               STATIC     49   variable
-;_lvl4                               STATIC     66   variable
-;_lvl3                               STATIC     32   variable
-;_lvl2                               STATIC     30   variable
-;_lev                                STATIC     81   variable
-;_lvl1                               STATIC     56   variable
-;_createMap                          IMPORT  -----   function
 ;_waterSpriteBuffer                  IMPORT     66   variable
 ;_loadData                           IMPORT  -----   function
 ;_gfx_SetTransparentColor            IMPORT  -----   function
@@ -1602,64 +1436,41 @@ L_4:
 ;       Spill Code: 0 (instruction)
 
 
-;  214	}
+;  213	}
+;  214	
 ;  215	
-;  216	
-;  217	/* Frees up all memory and exits the program
-;  218	 * @returns does not return. */
-;  219	void cleanUp() {
+;  216	/* Frees up all memory and exits the program
+;  217	 * @returns does not return. */
+;  218	void cleanUp() {
 _cleanUp:
-	LD	HL,-1
-	CALL	__frameset
-;  220		uint8_t i;
-;  221	
-;  222		saveData();
+;  219		uint8_t i;
+;  220	
+;  221		saveData();
 	CALL	_saveData
-;  223	
-;  224		gfx_End();
+;  222	
+;  223		gfx_End();
 	CALL	_gfx_End
-;  225	
-;  226		// free each level
-;  227		for(i = 0; i < SIZEOF_LEV; i++) {
-	LD	(IX+-1),0
-	JR	L_11
-L_9:
-;  228			freeLevel(&lev[i]);
-	LD	A,(IX+-1)
-	UEXT	HL
-	LD	L,A
-	LD	A,9
-	CALL	__imul_b
-	LD	BC,_lev
-	ADD	HL,BC
-	PUSH	HL
+;  224	
+;  225		freeLevel();
 	CALL	_freeLevel
-	POP	BC
-	INC	(IX+-1)
-;  229		}
-L_11:
-	LD	A,(IX+-1)
-	CP	A,9
-	JR	C,L_9
-;  230	
-;  231		Array_Destroy(&flows);
+;  226	
+;  227	
+;  228		Array_Destroy(&flows);
 	LD	BC,_flows
 	PUSH	BC
 	CALL	_Array_Destroy
 	POP	BC
-;  232		Array_Destroy(&animationTile);
+;  229		Array_Destroy(&animationTile);
 	LD	BC,_animationTile
 	PUSH	BC
 	CALL	_Array_Destroy
 	POP	BC
-;  233		exit(0);
+;  230		exit(0);
 	LD	BC,0
 	PUSH	BC
 	CALL	_exit
 	POP	BC
-;  234	}
-	LD	SP,IX
-	POP	IX
+;  231	}
 	RET	
 
 
@@ -1669,80 +1480,78 @@ L_11:
 ;_animationTile                      IMPORT     12   variable
 ;_flows                              IMPORT     12   variable
 ;_Array_Destroy                      IMPORT  -----   function
-;_lev                                STATIC     81   variable
 ;_freeLevel                          IMPORT  -----   function
 ;_gfx_End                            IMPORT  -----   function
 ;_saveData                           IMPORT  -----   function
-;i                                     IX-1      1   variable
 
 
-; Stack Frame Size: 7 (bytes)
+; Stack Frame Size: 6 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
-;  235	
-;  236	
-;  237	void move(uint8_t key) {
+;  232	
+;  233	
+;  234	void move(uint8_t key) {
 _move:
 	LD	HL,-4
 	CALL	__frameset
-;  238		Position pos;
-;  239		
-;  240		if(player.isMoving)
+;  235		Position pos;
+;  236		
+;  237		if(player.isMoving)
 	LD	A,(_player+5)
 	OR	A,A
-	JR	NZ,L_25
-;  241			return;
-;  242			
-;  243		if(key & kb_Right)
+	JR	NZ,L_20
+;  238			return;
+;  239			
+;  240		if(key & kb_Right)
 	LD	A,(IX+6)
 	AND	A,4
-	JR	Z,L_22
-;  244		{
-;  245			player.direction = RIGHT;
+	JR	Z,L_17
+;  241		{
+;  242			player.direction = RIGHT;
 	LD	BC,1
 	LD	(_player+2),BC
-;  246		}
-;  247		else if(key & kb_Left)
-	JR	L_24
-L_22:
+;  243		}
+;  244		else if(key & kb_Left)
+	JR	L_19
+L_17:
 	LD	A,(IX+6)
 	AND	A,2
-	JR	Z,L_20
-;  248		{
-;  249			player.direction = LEFT;
+	JR	Z,L_15
+;  245		{
+;  246			player.direction = LEFT;
 	LD	BC,0
 	LD	(_player+2),BC
-;  250		}
-;  251		else if(key & kb_Up)
-	JR	L_24
-L_20:
+;  247		}
+;  248		else if(key & kb_Up)
+	JR	L_19
+L_15:
 	LD	A,(IX+6)
 	AND	A,8
-	JR	Z,L_18
-;  252		{
-;  253			player.direction = UP;
+	JR	Z,L_13
+;  249		{
+;  250			player.direction = UP;
 	LD	BC,2
 	LD	(_player+2),BC
-;  254		}
-;  255		else if(key & kb_Down)
-	JR	L_24
-L_18:
+;  251		}
+;  252		else if(key & kb_Down)
+	JR	L_19
+L_13:
 	LD	A,(IX+6)
 	AND	A,1
-	JR	Z,L_25
-;  256		{
-;  257			player.direction = DOWN;
+	JR	Z,L_20
+;  253		{
+;  254			player.direction = DOWN;
 	LD	BC,3
 	LD	(_player+2),BC
-;  258		}
-;  259		else
-;  260		{
-;  261			return;
-;  262		}
-L_24:
-;  263	
-;  264		pos = facingOffset(player.direction);
+;  255		}
+;  256		else
+;  257		{
+;  258			return;
+;  259		}
+L_19:
+;  260	
+;  261		pos = facingOffset(player.direction);
 	LD	BC,(_player+2)
 	PUSH	BC
 	PEA	IX+-4
@@ -1752,7 +1561,7 @@ L_24:
 	LEA	DE,IX+-2
 	LD	BC,2
 	LDIR	
-;  265		movePlayer(pos.x, pos.y);
+;  262		movePlayer(pos.x, pos.y);
 	LD	C,(IX+-1)
 	LD	B,0
 	PUSH	BC
@@ -1761,8 +1570,8 @@ L_24:
 	CALL	_movePlayer
 	POP	BC
 	POP	BC
-;  266	}
-L_25:
+;  263	}
+L_20:
 	LD	SP,IX
 	POP	IX
 	RET	
@@ -1781,55 +1590,78 @@ L_25:
 ;       Spill Code: 0 (instruction)
 
 
-;  267	
-;  268	
-;  269	// called by `completeLevel()`.
-;  270	// Loads the next level
-;  271	void nextLevel() {
+;  264	
+;  265	
+;  266	// called by `completeLevel()`.
+;  267	// Loads the next level
+;  268	void nextLevel() {
 _nextLevel:
-;  272		setLevelCompletion(levelNumber);
+	LD	HL,-3
+	CALL	__frameset
+;  269		setLevelCompletion(levelNumber);
 	LD	A,(_levelNumber)
 	LD	C,A
 	LD	B,0
 	PUSH	BC
+	LD	(IX+-3),BC
 	CALL	_setLevelCompletion
-	POP	BC
-;  273	
-;  274		if(++levelNumber >= SIZEOF_LEV)
+	LD	BC,(IX+-3)
+	POP	DE
+	LD	(IX+-3),BC
+;  270		freeLevel();	
+	CALL	_freeLevel
+	LD	BC,(IX+-3)
+;  271	
+;  272	
+;  273		if(++levelNumber >= SIZEOF_MAPS)
 	LD	A,(_levelNumber)
 	INC	A
 	CP	A,9
 	LD	(_levelNumber),A
-	JR	C,L_27
-;  275			levelNumber = 0;
+	JR	C,L_22
+;  274			levelNumber = 0;
 	XOR	A,A
 	LD	(_levelNumber),A
-L_27:
-;  276	
-;  277		loadMap(&lev[levelNumber]);
+L_22:
+;  275	
+;  276		
+;  277		loadMap(maps[levelNumber]);
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
 	LD	A,(_levelNumber)
 	UEXT	HL
 	LD	L,A
-	LD	A,9
-	CALL	__imul_b
-	LD	BC,_lev
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	BC,_maps
 	ADD	HL,BC
-	PUSH	HL
+	LD	IY,0
+	ADD	IY,SP
+	LD	DE,IY
+	LD	BC,8
+	LDIR	
 	CALL	_loadMap
 	POP	BC
+	POP	BC
+	POP	BC
 ;  278	}
+	LD	SP,IX
+	POP	IX
 	RET	
 
 
 ;**************************** _nextLevel ***************************
 ;Name                         Addr/Register   Size   Type
-;_lev                                STATIC     81   variable
+;_maps                               STATIC     72   variable
 ;_loadMap                            IMPORT  -----   function
+;_freeLevel                          IMPORT  -----   function
 ;_levelNumber                        STATIC      1   variable
 ;_setLevelCompletion                 IMPORT  -----   function
 
 
-; Stack Frame Size: 6 (bytes)
+; Stack Frame Size: 9 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
@@ -1897,7 +1729,7 @@ _movePlayerWorldMap:
 ;  295		if(!lvl)
 	LD	A,(IX+9)
 	OR	A,A
-	JR	Z,L_32
+	JR	Z,L_27
 ;  296			return;
 ;  297	
 ;  298		*m = &worldMaps[lvl-1];
@@ -1937,7 +1769,7 @@ _movePlayerWorldMap:
 	LD	(IY+23),A
 ;  305	
 ;  306	}
-L_32:
+L_27:
 	LD	SP,IX
 	POP	IX
 	RET	
@@ -1960,7 +1792,7 @@ L_32:
 ;  309	 * @returns level number that was chosen. */
 ;  310	uint8_t showWorldMap() {
 _showWorldMap:
-	LD	HL,-45
+	LD	HL,-39
 	CALL	__frameset
 ;  311		uint8_t key;
 ;  312		level_t map;
@@ -1968,56 +1800,54 @@ _showWorldMap:
 	LD	(IX+-5),0
 ;  314		struct Map_t *curPosition;
 ;  315	
-;  316		createMap(&map, 1, 1, 14, 15, WorldMap, sizeof(WorldMap));
-	LD	BC,202
-	PUSH	BC
-	LD	BC,_WorldMap
-	PUSH	BC
-	LD	BC,15
-	PUSH	BC
-	LD	BC,14
-	PUSH	BC
-	LD	BC,1
+;  316		loadMap(WorldMapData);
 	PUSH	BC
 	PUSH	BC
-	PEA	IX+-21
-	CALL	_createMap
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-	POP	BC
-;  317		loadMap(&map);
-	PEA	IX+-21
+	PUSH	BC
+	OR	A,A
+	SBC	HL,HL
+	ADD	HL,SP
+	LD	DE,HL
+	LD	BC,8
+	LD	HL,_WorldMapData
+	LDIR	
+	LD	(IX+-39),BC
 	CALL	_loadMap
-	POP	BC
-;  318		
-;  319		gfx_SetTextBGColor(30);
-	LD	BC,30
-	PUSH	BC
+	LD	BC,(IX+-39)
+	POP	DE
+	POP	DE
+	POP	DE
+;  317		
+;  318		gfx_SetTextBGColor(30);
+	LD	DE,30
+	PUSH	DE
+	LD	(IX+-39),BC
 	CALL	_gfx_SetTextBGColor
-	POP	BC
-;  320		gfx_SetTextTransparentColor(30);
-	LD	BC,30
-	PUSH	BC
+	LD	BC,(IX+-39)
+	POP	DE
+;  319		gfx_SetTextTransparentColor(30);
+	LD	DE,30
+	PUSH	DE
+	LD	(IX+-39),BC
 	CALL	_gfx_SetTextTransparentColor
-	POP	BC
-;  321	
-;  322		gfx_SetTextFGColor(COLOR_BLACK);
-	LD	BC,0
-	PUSH	BC
+	LD	BC,(IX+-39)
+	POP	DE
+;  320	
+;  321		gfx_SetTextFGColor(COLOR_BLACK);
+	LD	DE,0
+	PUSH	DE
+	LD	(IX+-39),BC
 	CALL	_gfx_SetTextFGColor
-	POP	BC
-;  323	
-;  324		// if a level has been completed, then set a star tile
-;  325		for(key = 0; key < SIZEOF_LEV; key++)
+	LD	BC,(IX+-39)
+	POP	DE
+;  322	
+;  323		// if a level has been completed, then set a star tile
+;  324		for(key = 0; key < SIZEOF_MAPS; key++)
 	LD	(IX+-4),0
-	JR	L_37
-L_35:
-;  326		{
-;  327			const struct Map_t m = worldMaps[key];
+	JR	L_32
+L_30:
+;  325		{
+;  326			const struct Map_t m = worldMaps[key];
 	LD	A,(IX+-4)
 	UEXT	HL
 	LD	L,A
@@ -2025,214 +1855,266 @@ L_35:
 	CALL	__imul_b
 	LD	BC,_worldMaps
 	ADD	HL,BC
-	LEA	DE,IX+-45
+	LEA	DE,IX+-36
 	LD	BC,24
 	LDIR	
-;  328	
-;  329			if(getLevelCompletion(key))
+;  327	
+;  328			if(getLevelCompletion(key))
 	LD	C,(IX+-4)
 	LD	B,0
 	PUSH	BC
+	LD	(IX+-39),BC
 	CALL	_getLevelCompletion
-	POP	BC
+	LD	BC,(IX+-39)
+	POP	DE
 	OR	A,A
-	JR	Z,L_36
-;  330			{
-;  331				tile_t t;
-;  332				t.id = TILE_STAR;
+	JR	Z,L_31
+;  329			{
+;  330				tile_t t;
+;  331				t.id = TILE_STAR;
 	LD	(IX+-6),19
-;  333	
-;  334				setTile(m.x, m.y, &t);
+;  332	
+;  333				setTile(m.x, m.y, &t);
 	PEA	IX+-12
-	LD	C,(IX+-27)
+	LD	C,(IX+-18)
 	LD	B,0
 	PUSH	BC
-	LD	C,(IX+-28)
+	LD	C,(IX+-19)
 	PUSH	BC
 	CALL	_setTile
 	POP	BC
 	POP	BC
 	POP	BC
-;  335				removeAnimation(m.x, m.y);
-	LD	C,(IX+-27)
+;  334				removeAnimation(m.x, m.y);
+	LD	C,(IX+-18)
 	LD	B,0
 	PUSH	BC
-	LD	C,(IX+-28)
+	LD	C,(IX+-19)
 	PUSH	BC
+	LD	(IX+-39),BC
 	CALL	_removeAnimation
-	POP	BC
-	POP	BC
-;  336			}
-;  337	
-;  338		}
-L_36:
+	LD	BC,(IX+-39)
+	POP	DE
+	POP	DE
+;  335			}
+;  336	
+;  337		}
+L_31:
 	INC	(IX+-4)
-L_37:
+L_32:
 	LD	A,(IX+-4)
 	CP	A,9
-	JR	C,L_35
-;  339	
-;  340		if(getLevelCompletion(0))
-	LD	BC,0
-	PUSH	BC
+	JR	C,L_30
+;  338	
+;  339		if(getLevelCompletion(0))
+	LD	DE,0
+	PUSH	DE
+	LD	(IX+-39),BC
 	CALL	_getLevelCompletion
-	POP	BC
+	LD	BC,(IX+-39)
+	POP	DE
 	OR	A,A
-	JR	Z,L_42
-;  341			while(getLevelCompletion(++level));
-L_38:
+	JR	Z,L_37
+;  340			while(getLevelCompletion(++level));
+L_33:
 	INC	(IX+-5)
 	LD	C,(IX+-5)
 	LD	B,0
 	PUSH	BC
+	LD	(IX+-39),BC
 	CALL	_getLevelCompletion
-	POP	BC
+	LD	BC,(IX+-39)
+	POP	DE
 	OR	A,A
-	JR	NZ,L_38
-L_42:
-;  342		
-;  343		curPosition = &worldMaps[level];
+	JR	NZ,L_33
+L_37:
+;  341		
+;  342		curPosition = &worldMaps[level];
 	LD	A,(IX+-5)
 	UEXT	HL
 	LD	L,A
 	LD	A,24
 	CALL	__imul_b
-	LD	BC,_worldMaps
-	ADD	HL,BC
+	LD	DE,_worldMaps
+	ADD	HL,DE
 	LD	(IX+-3),HL
-;  344		curPosition->id = level;
+;  343		curPosition->id = level;
 	LD	A,(IX+-5)
 	LD	IY,(IX+-3)
 	LD	(IY+23),A
-;  345		player.x = curPosition->x;
+;  344		player.x = curPosition->x;
 	LD	A,(IY+17)
 	LD	(_player),A
-;  346		player.y = curPosition->y;
+;  345		player.y = curPosition->y;
 	LD	A,(IY+18)
 	LD	(_player+1),A
-;  347		drawMapTitle(curPosition);
-	LD	BC,HL
-	PUSH	BC
+;  346		drawMapTitle(curPosition);
+	LD	DE,(IX+-3)
+	PUSH	DE
+	LD	(IX+-39),BC
 	CALL	_drawMapTitle
-	POP	BC
-;  348	
-;  349		while((key = os_GetCSC()) != sk_2nd && key != sk_Enter)
-	JR	L_50
-L_51:
-;  350		{
-;  351			erasePlayer();
+	LD	BC,(IX+-39)
+	POP	DE
+;  347	
+;  348		while((key = os_GetCSC()) != sk_2nd && key != sk_Enter)
+	JR	L_45
+L_46:
+;  349		{
+;  350			erasePlayer();
 	CALL	_erasePlayer
-;  352			
-;  353			switch(key)
+;  351			
+;  352			switch(key)
 	LD	A,(IX+-4)
 	UEXT	HL
 	LD	L,A
 	CALL	__case8
-L__20:
+L__19:
 	DW	5
 	DB	1
-	DW24	L_46	
+	DW24	L_41	
 
 	DB	2
-	DW24	L_45	
+	DW24	L_40	
 
 	DB	3
-	DW24	L_44	
+	DW24	L_39	
 
 	DB	4
-	DW24	L_47	
+	DW24	L_42	
 
 	DB	15
-	DW24	L_48	
+	DW24	L_43	
 
-	DW24	L_49	
+	DW24	L_44	
 
-;  354			{
-;  355			case sk_Right:
-L_44:
-;  356				movePlayerWorldMap(&curPosition, curPosition->right);
+;  353			{
+;  354			case sk_Right:
+L_39:
+;  355				movePlayerWorldMap(&curPosition, curPosition->right);
 	LD	IY,(IX+-3)
 	LD	C,(IY+20)
 	LD	B,0
 	PUSH	BC
 	PEA	IX+-3
+	LD	(IX+-39),BC
 	CALL	_movePlayerWorldMap
-	POP	BC
-	POP	BC
-;  357				break;
-	JR	L_49
-;  358			case sk_Left:
-L_45:
-;  359				movePlayerWorldMap(&curPosition, curPosition->left);
+	LD	BC,(IX+-39)
+	POP	DE
+	POP	DE
+;  356				break;
+	JR	L_44
+;  357			case sk_Left:
+L_40:
+;  358				movePlayerWorldMap(&curPosition, curPosition->left);
 	LD	IY,(IX+-3)
 	LD	C,(IY+19)
 	LD	B,0
 	PUSH	BC
 	PEA	IX+-3
+	LD	(IX+-39),BC
 	CALL	_movePlayerWorldMap
-	POP	BC
-	POP	BC
-;  360				break;
-	JR	L_49
-;  361			case sk_Down:
-L_46:
-;  362				movePlayerWorldMap(&curPosition, curPosition->down);
+	LD	BC,(IX+-39)
+	POP	DE
+	POP	DE
+;  359				break;
+	JR	L_44
+;  360			case sk_Down:
+L_41:
+;  361				movePlayerWorldMap(&curPosition, curPosition->down);
 	LD	IY,(IX+-3)
 	LD	C,(IY+22)
 	LD	B,0
 	PUSH	BC
 	PEA	IX+-3
+	LD	(IX+-39),BC
 	CALL	_movePlayerWorldMap
-	POP	BC
-	POP	BC
-;  363				break;
-	JR	L_49
-;  364			case sk_Up:
-L_47:
-;  365				movePlayerWorldMap(&curPosition, curPosition->up);
+	LD	BC,(IX+-39)
+	POP	DE
+	POP	DE
+;  362				break;
+	JR	L_44
+;  363			case sk_Up:
+L_42:
+;  364				movePlayerWorldMap(&curPosition, curPosition->up);
 	LD	IY,(IX+-3)
 	LD	C,(IY+21)
 	LD	B,0
 	PUSH	BC
 	PEA	IX+-3
+	LD	(IX+-39),BC
 	CALL	_movePlayerWorldMap
-	POP	BC
-	POP	BC
-;  366				break;
-	JR	L_49
-;  367			case sk_Clear:
-L_48:
-;  368				cleanUp();
+	LD	BC,(IX+-39)
+	POP	DE
+	POP	DE
+;  365				break;
+	JR	L_44
+;  366			case sk_Clear:
+L_43:
+	LD	(IX+-39),BC
+;  367				cleanUp();
 	CALL	_cleanUp
-;  369			}
-L_49:
-;  370	
-;  371			doAnimations();
+	LD	BC,(IX+-39)
+;  368			}
+L_44:
+	LD	(IX+-39),BC
+;  369	
+;  370			doAnimations();
 	CALL	_doAnimations
-;  372			drawPlayer();
+	LD	BC,(IX+-39)
+	LD	(IX+-39),BC
+;  371			drawPlayer();
 	CALL	_drawPlayer
-;  373	
-;  374			gfx_BlitBuffer();
-	LD	BC,1
-	PUSH	BC
+	LD	BC,(IX+-39)
+;  372	
+;  373			gfx_BlitBuffer();
+	LD	DE,1
+	PUSH	DE
+	LD	(IX+-39),BC
 	CALL	_gfx_Blit
-	POP	BC
-;  375		}
-L_50:
+	LD	BC,(IX+-39)
+	POP	DE
+;  374		}
+L_45:
+	LD	(IX+-39),BC
 	CALL	_os_GetCSC
+	LD	BC,(IX+-39)
 	LD	(IX+-4),A
 	CP	A,54
-	JR	Z,L_52
+	JR	Z,L_47
 	LD	A,(IX+-4)
 	CP	A,9
-	JR	NZ,L_51
-L_52:
-;  376	
-;  377		freeLevel(&map);
-	PEA	IX+-21
+	JR	NZ,L_46
+L_47:
+	LD	(IX+-39),BC
+;  375	
+;  376		freeLevel();
 	CALL	_freeLevel
+	LD	BC,(IX+-39)
+;  377	
+;  378		loadMap(maps[curPosition->id]);
+	LD	IY,(IX+-3)
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
+	LD	A,(IY+23)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	BC,_maps
+	ADD	HL,BC
+	LD	IY,0
+	ADD	IY,SP
+	LD	DE,IY
+	LD	BC,8
+	LDIR	
+	CALL	_loadMap
 	POP	BC
-;  378		return curPosition->id;
+	POP	BC
+	POP	BC
+;  379	
+;  380		return curPosition->id;
 	LD	IY,(IX+-3)
 	LD	A,(IY+23)
 	LD	SP,IX
@@ -2242,6 +2124,7 @@ L_52:
 
 ;**************************** _showWorldMap ***************************
 ;Name                         Addr/Register   Size   Type
+;_maps                               STATIC     72   variable
 ;_freeLevel                          IMPORT  -----   function
 ;_os_GetCSC                          IMPORT  -----   function
 ;_gfx_Blit                           IMPORT  -----   function
@@ -2257,18 +2140,16 @@ L_52:
 ;_gfx_SetTextFGColor                 IMPORT  -----   function
 ;_gfx_SetTextTransparentColor        IMPORT  -----   function
 ;_gfx_SetTextBGColor                 IMPORT  -----   function
+;_WorldMapData                       STATIC      8   variable
 ;_loadMap                            IMPORT  -----   function
-;_WorldMap                           STATIC    202   variable
-;_createMap                          IMPORT  -----   function
-;m                                    IX-45     24   variable
-;map                                  IX-21      9   variable
+;m                                    IX-36     24   variable
 ;t                                    IX-12      7   variable
 ;level                                 IX-5      1   variable
 ;key                                   IX-4      1   variable
 ;curPosition                           IX-3      3   variable
 
 
-; Stack Frame Size: 51 (bytes)
+; Stack Frame Size: 45 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
@@ -2290,7 +2171,6 @@ L_52:
 	XREF _updatePlayer:ROM
 	XREF _setTile:ROM
 	XREF _facingOffset:ROM
-	XREF _createMap:ROM
 	XREF _freeLevel:ROM
 	XREF _loadMap:ROM
 	XREF _Array_Destroy:ROM
@@ -2321,6 +2201,8 @@ L_52:
 	XDEF _move
 	XDEF _cleanUp
 	XDEF _main
+	XDEF _maps
+	XDEF _WorldMapData
 	XDEF _curLevel
 	XDEF _lvl9
 	XDEF _lvl8

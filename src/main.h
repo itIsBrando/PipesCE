@@ -110,14 +110,25 @@ struct Map_t {
 	uint8_t id; // only set externally
 };
 
+typedef struct
+{
+	uint8_t sx, sy; // player start position
+	uint8_t width, height;
+	const uint8_t *data;
+	uint8_t rleSize; // 0 if not compressed
+} mapstore_t;
+
 
 extern struct animation_t;
 extern struct fire_t;
 extern struct level_t;
+extern struct mapstore_t;
 extern struct tile_t;
-extern struct player_t player;
 extern struct Position;
-extern level_t *curLevel;
+
+extern struct player_t player;
+extern level_t curLevel;
+mapstore_t maps[];
 
 void cleanUp();
 void move(uint8_t key);

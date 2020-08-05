@@ -22,9 +22,9 @@ void initAnimations() {
     Array_Clear(&animationTile);
     animationTimer = 0;
 
-    for(y = 0; y < curLevel->height; y++)
+    for(y = 0; y < curLevel.height; y++)
     {
-        for (x = 0; x < curLevel->width; x++)
+        for (x = 0; x < curLevel.width; x++)
         {
             tile_t tile = getTile(x, y);
             animation_t a;
@@ -105,8 +105,8 @@ void removeAnimation(const uint8_t x, const uint8_t y) {
  * @param x X coordinate of sprite in pixels
  * @param y Y coordinate of sprite in pixels
  * @returns none */
-#define drawSpriteWithOffset(sprite, x, y) drawSprite(sprite, (unsigned int)(x) + curLevel->ox, (y) + curLevel->oy)
-#define drawSpriteWithOffset_Transparent(sprite, x, y) drawSprite_Transparent(sprite, (unsigned int)(x) + curLevel->ox, (y) + curLevel->oy)
+#define drawSpriteWithOffset(sprite, x, y) drawSprite(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
+#define drawSpriteWithOffset_Transparent(sprite, x, y) drawSprite_Transparent(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
 
 
 /* redraws a tile at a given (row, column)

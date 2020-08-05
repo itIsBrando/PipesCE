@@ -35,13 +35,11 @@ _keepWaterTick:
 _drainWater:
 	LD	HL,-24
 	CALL	__frameset
-;   21	    const uint8_t width = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   21	    const uint8_t width = curLevel.width;
+	LD	A,(_curLevel+4)
 	LD	(IX+-13),A
-;   22	    const uint8_t height = curLevel->height;
-	LD	IY,(_curLevel)
-	LD	A,(IY+5)
+;   22	    const uint8_t height = curLevel.height;
+	LD	A,(_curLevel+5)
 	LD	(IX+-14),A
 ;   23	    uint8_t y, x;
 ;   24	
@@ -182,7 +180,7 @@ L_18:
 ;_removeAnimation                    IMPORT  -----   function
 ;_firesAlive                         IMPORT      1   variable
 ;_getTile                            IMPORT  -----   function
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;G_0                                  IX-17      3   variable
 ;height                               IX-14      1   variable
 ;width                                IX-13      1   variable
@@ -202,23 +200,21 @@ L_18:
 _initFlows:
 	LD	HL,-18
 	CALL	__frameset
-;   60	    const uint8_t width = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   60	    const uint8_t width = curLevel.width;
+	LD	A,(_curLevel+4)
 	LD	(IX+-3),A
-;   61	    const uint8_t height = curLevel->height;
-	LD	IY,(_curLevel)
-	LD	A,(IY+5)
+;   61	    const uint8_t height = curLevel.height;
+	LD	A,(_curLevel+5)
 	LD	(IX+-4),A
 ;   62	    uint8_t y, x;
 ;   63	
 ;   64	    player.isWaterFlowing = true;
+	LD	A,1
 ;   65	    keepWaterTick = false;
 ;   66	
 ;   67	    Array_Clear(&flows);
 	LD	BC,_flows
 	PUSH	BC
-	LD	A,1
 	LD	(_player+7),A
 	XOR	A,A
 	LD	(_keepWaterTick),A
@@ -314,7 +310,7 @@ L_29:
 ;_Array_Clear                        IMPORT  -----   function
 ;_keepWaterTick                      STATIC      1   variable
 ;_player                             IMPORT     10   variable
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;tile                                 IX-11      7   variable
 ;height                                IX-4      1   variable
 ;width                                 IX-3      1   variable

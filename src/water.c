@@ -18,8 +18,8 @@ static bool keepWaterTick = false;
 
 
 void drainWater() {
-    const uint8_t width = curLevel->width;
-    const uint8_t height = curLevel->height;
+    const uint8_t width = curLevel.width;
+    const uint8_t height = curLevel.height;
     uint8_t y, x;
 
     for(y = 0; y < height; y++)
@@ -57,8 +57,8 @@ void drainWater() {
 
 
 void initFlows() {
-    const uint8_t width = curLevel->width;
-    const uint8_t height = curLevel->height;
+    const uint8_t width = curLevel.width;
+    const uint8_t height = curLevel.height;
     uint8_t y, x;
 
     player.isWaterFlowing = true;

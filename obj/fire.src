@@ -27,15 +27,13 @@ _firesAlive:
 _initFire:
 	LD	HL,-16
 	CALL	__frameset
-;   16	    const unsigned int width = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   16	    const unsigned int width = curLevel.width;
+	LD	A,(_curLevel+4)
 	UEXT	HL
 	LD	L,A
 	LD	(IX+-9),HL
-;   17	    const unsigned int height = curLevel->height;
-	LD	IY,(_curLevel)
-	LD	A,(IY+5)
+;   17	    const unsigned int height = curLevel.height;
+	LD	A,(_curLevel+5)
 	UEXT	HL
 	LD	L,A
 	LD	(IX+-6),HL
@@ -50,12 +48,11 @@ _initFire:
 	LD	(IX+-3),BC
 	JR	L_6
 L_4:
-;   23	        tile_t tile = curLevel->data[i];
-	LD	IY,(_curLevel)
+;   23	        tile_t tile = curLevel.data[i];
 	LD	HL,(IX+-3)
 	LD	A,7
 	CALL	__imul_b
-	LD	BC,(IY+6)
+	LD	BC,(_curLevel+6)
 	ADD	HL,BC
 	LEA	DE,IX+-16
 	LD	BC,7
@@ -96,7 +93,7 @@ L_6:
 ;**************************** _initFire ***************************
 ;Name                         Addr/Register   Size   Type
 ;_firesAlive                         STATIC      1   variable
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;tile                                 IX-16      7   variable
 ;width                                 IX-9      3   variable
 ;height                                IX-6      3   variable

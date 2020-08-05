@@ -47,12 +47,12 @@ _initAnimations:
 	XOR	A,A
 	LD	(_animationTimer),A
 ;   24	
-;   25	    for(y = 0; y < curLevel->height; y++)
+;   25	    for(y = 0; y < curLevel.height; y++)
 	LD	(IX+-2),0
 	JR	L_12
 L_10:
 ;   26	    {
-;   27	        for (x = 0; x < curLevel->width; x++)
+;   27	        for (x = 0; x < curLevel.width; x++)
 	LD	(IX+-1),0
 	JR	L_9
 L_7:
@@ -132,17 +132,17 @@ L_6:
 L_8:
 	INC	(IX+-1)
 L_9:
-	LD	IY,(_curLevel)
 	LD	A,(IX+-1)
-	CP	A,(IY+4)
+	LD	HL,_curLevel+4
+	CP	A,(HL)
 	JR	C,L_7
 	INC	(IX+-2)
 ;   53	        
 ;   54	    }
 L_12:
-	LD	IY,(_curLevel)
 	LD	A,(IX+-2)
-	CP	A,(IY+5)
+	LD	HL,_curLevel+5
+	CP	A,(HL)
 	JR	C,L_10
 ;   55	}
 	LD	SP,IX
@@ -152,7 +152,7 @@ L_12:
 
 ;**************************** _initAnimations ***************************
 ;Name                         Addr/Register   Size   Type
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;_Array_Append                       IMPORT  -----   function
 ;_getTile                            IMPORT  -----   function
 ;_animationTimer                     STATIC      1   variable
@@ -420,8 +420,8 @@ L_34:
 ;  105	 * @param x X coordinate of sprite in pixels
 ;  106	 * @param y Y coordinate of sprite in pixels
 ;  107	 * @returns none */
-;  108	#define drawSpriteWithOffset(sprite, x, y) drawSprite(sprite, (unsigned int)(x) + curLevel->ox, (y) + curLevel->oy)
-;  109	#define drawSpriteWithOffset_Transparent(sprite, x, y) drawSprite_Transparent(sprite, (unsigned int)(x) + curLevel->ox, (y) + curLevel->oy)
+;  108	#define drawSpriteWithOffset(sprite, x, y) drawSprite(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
+;  109	#define drawSpriteWithOffset_Transparent(sprite, x, y) drawSprite_Transparent(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
 ;  110	
 ;  111	
 ;  112	/* redraws a tile at a given (row, column)
@@ -489,12 +489,11 @@ _drawTile:
 	JR	L_38
 L_37:
 ;  128	        drawSpriteWithOffset(sprite, x, y);
-	LD	IY,(_curLevel)
+	LD	BC,(_curLevel+3)
 	LD	A,(IX+-1)
-	ADD	A,(IY+3)
+	ADD	A,C
 	LD	C,A
-	LD	IY,(_curLevel)
-	LD	A,(IY+2)
+	LD	A,(_curLevel+2)
 	UEXT	HL
 	LD	B,0
 	PUSH	BC
@@ -519,7 +518,7 @@ L_38:
 
 ;**************************** _drawTile ***************************
 ;Name                         Addr/Register   Size   Type
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;_drawSprite                         IMPORT  -----   function
 ;_drawFilledPipe                     STATIC  -----   function
 ;_lookupTile                         IMPORT  -----   function
@@ -736,12 +735,10 @@ L_46:
 	JR	C,L_44
 ;  179	
 ;  180	    drawSpriteWithOffset((gfx_sprite_t*)pipeSpriteBuffer, x, y);
-	LD	IY,(_curLevel)
-	LD	A,(IY+3)
+	LD	A,(_curLevel+3)
 	ADD	A,(IX+12)
 	LD	C,A
-	LD	IY,(_curLevel)
-	LD	A,(IY+2)
+	LD	A,(_curLevel+2)
 	UEXT	HL
 	LD	L,A
 	LD	DE,HL
@@ -766,7 +763,7 @@ L_46:
 
 ;**************************** _drawFilledPipe ***************************
 ;Name                         Addr/Register   Size   Type
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;_drawSprite                         IMPORT  -----   function
 ;_pipeSpriteBuffer                   IMPORT  unknown variable
 ;_memcpy                             IMPORT  -----   function
@@ -941,12 +938,10 @@ L_54:
 	LD	(_playerS),BC
 L_56:
 ;  208	        drawSpriteWithOffset_Transparent(playerS, pos.x, pos.y);
-	LD	IY,(_curLevel)
-	LD	A,(IY+3)
+	LD	A,(_curLevel+3)
 	ADD	A,(IX+-1)
 	LD	C,A
-	LD	IY,(_curLevel)
-	LD	A,(IY+2)
+	LD	A,(_curLevel+2)
 	UEXT	HL
 	LD	L,A
 	LD	DE,HL
@@ -968,12 +963,10 @@ L_56:
 L_58:
 ;  210	    {
 ;  211	    	drawSpriteWithOffset_Transparent(playerSprite, pos.x, pos.y);
-	LD	IY,(_curLevel)
-	LD	A,(IY+3)
+	LD	A,(_curLevel+3)
 	ADD	A,(IX+-1)
 	LD	C,A
-	LD	IY,(_curLevel)
-	LD	A,(IY+2)
+	LD	A,(_curLevel+2)
 	UEXT	HL
 	LD	L,A
 	LD	DE,HL
@@ -1001,7 +994,7 @@ L_59:
 ;**************************** _drawPlayer ***************************
 ;Name                         Addr/Register   Size   Type
 ;_character_still_data               IMPORT     66   variable
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;_drawSprite_Transparent             IMPORT  -----   function
 ;_character_run_2_data               IMPORT     66   variable
 ;_playerS                            STATIC      3   variable

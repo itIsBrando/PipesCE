@@ -49,137 +49,136 @@ _pipes:
 ;   22	};
 ;   23	
 ;   24	
-;   25	void createMap(level_t *level, const uint8_t x, const uint8_t y, const uint8_t width, const uint8_t height, uint8_t *data, const bool isRLE) {
-_createMap:
-	LD	HL,-29
+;   25	void loadMap(mapstore_t map) {
+_loadMap:
+	LD	HL,-32
 	CALL	__frameset
 ;   26		unsigned int i;
-;   27		const unsigned int area = (unsigned int)width * (unsigned int)height;
-	LD	A,(IX+15)
+;   27		uint8_t *data = map.data;
+	LD	BC,(IX+10)
+	LD	(IX+-9),BC
+;   28		const unsigned int area = (unsigned int)map.width * (unsigned int)map.height;
+	LD	A,(IX+8)
 	UEXT	HL
 	LD	L,A
 	LD	DE,HL
-	LD	A,(IX+18)
+	LD	A,(IX+9)
 	UEXT	HL
 	LD	L,A
 	LD	BC,HL
 	LD	HL,DE
 	CALL	__imulu
 	LD	(IX+-12),HL
-;   28	
-;   29		level->width = width;
-	LD	A,(IX+15)
-	LD	IY,(IX+6)
-	LD	(IY+4),A
-;   30		level->height = height;
-	LD	A,(IX+18)
-	LD	(IY+5),A
-;   31		level->px = x;
+;   29	
+;   30		curLevel.width = map.width;
+	LD	A,(IX+8)
+	LD	(_curLevel+4),A
+;   31		curLevel.height = map.height;
 	LD	A,(IX+9)
-	LD	(IY+0),A
-;   32		level->py = y;
-	LD	A,(IX+12)
-	LD	(IY+1),A
-;   33		level->ox = (SCREEN_WIDTH/2) - width * (8*SCALEBY/2);
-	LD	A,(IX+15)
+	LD	(_curLevel+5),A
+;   32		curLevel.px = map.sx;
+	LD	A,(IX+6)
+	LD	(_curLevel),A
+;   33		curLevel.py = map.sy;
+	LD	A,(IX+7)
+	LD	(_curLevel+1),A
+;   34		curLevel.ox = (SCREEN_WIDTH/2) - map.width * (8*SCALEBY/2);
+	LD	A,(IX+8)
 	ADD	A,A
 	ADD	A,A
 	ADD	A,A
 	LD	B,A
 	LD	A,160
 	SUB	A,B
-	LD	(IY+2),A
-;   34		level->oy = (SCREEN_HEIGHT/2) - height * (4*SCALEBY);
-	LD	A,(IX+18)
+	LD	(_curLevel+2),A
+;   35		curLevel.oy = (SCREEN_HEIGHT/2) - map.height * (4*SCALEBY);
+	LD	A,(IX+9)
 	ADD	A,A
 	ADD	A,A
 	ADD	A,A
 	LD	B,A
 	LD	A,120
 	SUB	A,B
-	LD	(IY+3),A
-;   35		level->data = malloc(area * sizeof(tile_t));
+	LD	(_curLevel+3),A
+;   36		curLevel.data = malloc(area * sizeof(tile_t));
 	LD	HL,(IX+-12)
 	LD	A,7
 	CALL	__imul_b
 	PUSH	HL
 	CALL	_malloc
 	POP	BC
-	LD	IY,(IX+6)
-	LD	(IY+6),HL
-;   36	
-;   37		// if compressed, then we will expand it
-;   38		if(isRLE)
-	LD	A,(IX+24)
+	LD	(_curLevel+6),HL
+;   37	
+;   38		// if compressed, then we will expand it
+;   39		if(map.rleSize)
+	LD	A,(IX+13)
 	OR	A,A
 	JR	Z,L_1
-;   39		{
-;   40			uint8_t *copy = data;
-	LD	BC,(IX+21)
-	LD	(IX+-15),BC
-;   41			data = malloc(isRLE);
-	LD	A,(IX+24)
-	UEXT	HL
-	LD	L,A
-	PUSH	HL
+;   40		{
+;   41			uint8_t *copy = map.data;
+	LD	BC,(IX+10)
+	LD	(IX+-25),BC
+;   42			data = malloc(area);
+	LD	BC,(IX+-12)
+	PUSH	BC
 	CALL	_malloc
 	POP	BC
-	LD	(IX+21),HL
-;   42			rleDecompress(copy, &data, isRLE);
-	LD	A,(IX+24)
+	LD	(IX+-9),HL
+;   43			assert(data);
+;   44			rleDecompress(copy, &data, map.rleSize);
+	LD	A,(IX+13)
 	UEXT	HL
 	LD	L,A
 	PUSH	HL
-	PEA	IX+21
-	LD	BC,(IX+-15)
+	PEA	IX+-9
+	LD	BC,(IX+-25)
 	PUSH	BC
 	CALL	_rleDecompress
 	POP	BC
 	POP	BC
 	POP	BC
-;   43		}
+;   45		}
 L_1:
-;   44	
-;   45		assert(level->data);
 ;   46	
-;   47		for(i = 0; i < area; i++)
+;   47		assert(curLevel.data);
+;   48	
+;   49		for(i = 0; i < area; i++)
 	LD	BC,0
 	LD	(IX+-3),BC
 	JR	L_12
 L_10:
-;   48		{
-;   49			tile_t *t = &level->data[i];
+;   50		{
+;   51			tile_t *t = &curLevel.data[i];
 	LD	HL,(IX+-3)
 	LD	A,7
-	LD	IY,(IX+6)
-	LD	BC,(IY+6)
 	CALL	__imul_b
+	LD	BC,(_curLevel+6)
 	ADD	HL,BC
 	LD	(IX+-6),HL
-;   50			tilesprite_t tiledata = lookupTile(data[i]);
+;   52			tilesprite_t tiledata = lookupTile(data[i]);
 	LD	BC,(IX+-3)
-	LD	HL,(IX+21)
+	LD	HL,(IX+-9)
 	ADD	HL,BC
 	LD	C,(HL)
 	LD	B,0
 	PUSH	BC
-	PEA	IX+-29
+	PEA	IX+-32
 	CALL	_lookupTile
 	POP	BC
 	POP	BC
 	LEA	DE,IX+-22
 	LD	BC,7
 	LDIR	
-;   51	
-;   52			t->id = tiledata.id;
+;   53	
+;   54			t->id = tiledata.id;
 	LD	A,(IX+-22)
 	LD	IY,(IX+-6)
 	LD	(IY+6),A
-;   53			t->flags = tiledata.flags;
+;   55			t->flags = tiledata.flags;
 	LD	A,(IX+-18)
 	LD	(IY+2),A
-;   54			
-;   55			if(tiledata.id == TILE_FIRE_1 || tiledata.id == TILE_BLUE_FIRE_1)
+;   56			
+;   57			if(tiledata.id == TILE_FIRE_1 || tiledata.id == TILE_BLUE_FIRE_1)
 	LD	A,(IX+-22)
 	CP	A,10
 	JR	Z,L_8
@@ -187,20 +186,20 @@ L_10:
 	CP	A,16
 	JR	NZ,L_9
 L_8:
-;   56			{
-;   57				createFire(t);
+;   58			{
+;   59				createFire(t);
 	LD	BC,(IX+-6)
 	PUSH	BC
 	CALL	_createFire
 	POP	BC
-;   58			} else
+;   60			} else
 	JR	L_11
 L_9:
-;   59			{	
-;   60				t->data.hasWater = false;
+;   61			{	
+;   62				t->data.hasWater = false;
 	LD	IY,(IX+-6)
 	LD	(IY+0),0
-;   61				t->type = pipeFromIndex(tiledata.id) ? TYPE_PIPE : TYPE_BLOCK;
+;   63				t->type = pipeFromIndex(tiledata.id) ? TYPE_PIPE : TYPE_BLOCK;
 	LD	C,(IX+-22)
 	LD	B,0
 	PUSH	BC
@@ -209,18 +208,18 @@ L_9:
 	CALL	__icmpzero
 	JR	Z,L_6
 	LD	BC,1
-	LD	(IX+-9),BC
+	LD	(IX+-15),BC
 	JR	L_7
 L_6:
 	LD	BC,0
-	LD	(IX+-9),BC
+	LD	(IX+-15),BC
 L_7:
-	LD	BC,(IX+-9)
+	LD	BC,(IX+-15)
 	LD	IY,(IX+-6)
 	LD	(IY+3),BC
-;   62			}
-;   63	
-;   64		}
+;   64			}
+;   65	
+;   66		}
 L_11:
 	LD	BC,(IX+-3)
 	INC	BC
@@ -231,117 +230,126 @@ L_12:
 	OR	A,A
 	SBC	HL,BC
 	JR	C,L_10
-;   65	
-;   66		// free alloted memory
-;   67		if(isRLE)
-	LD	A,(IX+24)
+;   67	
+;   68		// free alloted memory
+;   69		if(map.rleSize)
+	LD	A,(IX+13)
 	OR	A,A
-	JR	Z,L_17
-;   68		{
-;   69			free(data);
-	LD	BC,(IX+21)
+	JR	Z,L_15
+;   70		{
+;   71			free(data);
+	LD	BC,(IX+-9)
 	PUSH	BC
 	CALL	_free
 	POP	BC
-;   70		}
-;   71	
-;   72		dbg_sprintf(dbgerr, "size: (%d, %d)\n", level->width, level->height);
-;   73	}
-L_17:
+;   72		}
+L_15:
+;   73	
+;   74	
+;   75		drawLevel();
+	CALL	_drawLevel
+;   76		player.x = curLevel.px;
+	LD	A,(_curLevel)
+	LD	(_player),A
+;   77		player.y = curLevel.py;
+	LD	A,(_curLevel+1)
+	LD	(_player+1),A
+;   78		initFire();
+	CALL	_initFire
+;   79		initAnimations();
+	CALL	_initAnimations
+;   80		Array_Clear(&flows);
+	LD	BC,_flows
+	PUSH	BC
+	CALL	_Array_Clear
+	POP	BC
+;   81	}
 	LD	SP,IX
 	POP	IX
 	RET	
 
 
-;**************************** _createMap ***************************
+;**************************** _loadMap ***************************
 ;Name                         Addr/Register   Size   Type
+;_flows                              IMPORT     12   variable
+;_Array_Clear                        IMPORT  -----   function
+;_initAnimations                     IMPORT  -----   function
+;_initFire                           IMPORT  -----   function
+;_player                             IMPORT     10   variable
+;_drawLevel                          IMPORT  -----   function
 ;_free                               IMPORT  -----   function
 ;_pipeFromIndex                      IMPORT  -----   function
 ;_createFire                         IMPORT  -----   function
 ;_lookupTile                         IMPORT  -----   function
 ;_rleDecompress                      IMPORT  -----   function
 ;_malloc                             IMPORT  -----   function
+;_curLevel                           IMPORT      9   variable
+;copy                                 IX-25      3   variable
 ;tiledata                             IX-22      7   variable
-;copy                                 IX-15      3   variable
+;temp4                                IX-15      3   variable
 ;area                                 IX-12      3   variable
-;temp4                                 IX-9      3   variable
+;data                                  IX-9      3   variable
 ;t                                     IX-6      3   variable
 ;i                                     IX-3      3   variable
-;isRLE                                IX+24      1   parameter
-;data                                 IX+21      3   parameter
-;height                               IX+18      1   parameter
-;width                                IX+15      1   parameter
-;y                                    IX+12      1   parameter
-;x                                     IX+9      1   parameter
-;level                                 IX+6      3   parameter
+;map                                   IX+6      8   parameter
 
 
-; Stack Frame Size: 56 (bytes)
+; Stack Frame Size: 47 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
-;   74	
-;   75	
-;   76	void freeLevel(level_t *l) {
+;   82	
+;   83	
+;   84	void freeLevel() {
 _freeLevel:
-	LD	HL,-3
-	CALL	__frameset
-;   77		uint8_t i;
-;   78		
-;   79		if(l->data)
-	LD	IY,(IX+6)
-	LD	BC,(IY+6)
-	LD	(IX+-3),BC
-	LD	HL,BC
+;   85		if(curLevel.data)
+	LD	HL,(_curLevel+6)
 	CALL	__icmpzero
-	JR	Z,L_19
-;   80			free(l->data);
-	LD	BC,(IX+-3)
+	JR	Z,L_18
+;   86			free(curLevel.data);
+	LD	BC,(_curLevel+6)
 	PUSH	BC
 	CALL	_free
 	POP	BC
-;   81	}
-L_19:
-	LD	SP,IX
-	POP	IX
+;   87	}
+L_18:
 	RET	
 
 
 ;**************************** _freeLevel ***************************
 ;Name                         Addr/Register   Size   Type
 ;_free                               IMPORT  -----   function
-;G_0                                   IX-3      3   variable
-;l                                     IX+6      3   parameter
+;_curLevel                           IMPORT      9   variable
 
 
-; Stack Frame Size: 12 (bytes)
+; Stack Frame Size: 6 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
-;   82	
-;   83	
-;   84	void drawLevel(level_t level) {
+;   88	
+;   89	
+;   90	void drawLevel() {
 _drawLevel:
 	LD	HL,-16
 	CALL	__frameset
-;   85		uint8_t x, y;
-;   86		
-;   87		gfx_FillScreen(COLOR_YELLOW);
+;   91		uint8_t x, y;
+;   92		
+;   93		gfx_FillScreen(COLOR_YELLOW);
 	LD	BC,1
 	PUSH	BC
 	CALL	_gfx_FillScreen
 	POP	BC
-;   88		for(y = 0; y < level.height; y++)
+;   94		for(y = 0; y < curLevel.height; y++)
 	LD	(IX+-2),0
-	JR	L_27
-L_25:
-;   89		{
-;   90			for(x = 0; x < level.width; x++)
+	JR	L_26
+L_24:
+;   95		{
+;   96			for(x = 0; x < curLevel.width; x++)
 	LD	(IX+-1),0
-	JR	L_24
-L_22:
-;   91			{
-;   92				tile_t tile = getTile(x, y);
+	JR	L_23
+L_21:
+;   97			{
+;   98				tile_t tile = getTile(x, y);
 	LD	C,(IX+-2)
 	LD	B,0
 	PUSH	BC
@@ -355,7 +363,7 @@ L_22:
 	LEA	DE,IX+-9
 	LD	BC,7
 	LDIR	
-;   93				drawTile(tile, x, y);
+;   99				drawTile(tile, x, y);
 	LD	IY,0
 	LD	C,(IX+-2)
 	LD	B,0
@@ -377,19 +385,21 @@ L_22:
 	POP	BC
 	POP	BC
 	INC	(IX+-1)
-;   94			}
-L_24:
+;  100			}
+L_23:
 	LD	A,(IX+-1)
-	CP	A,(IX+10)
-	JR	C,L_22
+	LD	HL,_curLevel+4
+	CP	A,(HL)
+	JR	C,L_21
 	INC	(IX+-2)
-;   95		}
-L_27:
+;  101		}
+L_26:
 	LD	A,(IX+-2)
-	CP	A,(IX+11)
-	JR	C,L_25
-;   96	
-;   97	}
+	LD	HL,_curLevel+5
+	CP	A,(HL)
+	JR	C,L_24
+;  102	
+;  103	}
 	LD	SP,IX
 	POP	IX
 	RET	
@@ -397,139 +407,69 @@ L_27:
 
 ;**************************** _drawLevel ***************************
 ;Name                         Addr/Register   Size   Type
+;_curLevel                           IMPORT      9   variable
 ;_drawTile                           IMPORT  -----   function
 ;_getTile                            IMPORT  -----   function
 ;_gfx_FillScreen                     IMPORT  -----   function
 ;tile                                  IX-9      7   variable
 ;y                                     IX-2      1   variable
 ;x                                     IX-1      1   variable
-;level                                 IX+6      9   parameter
 
 
-; Stack Frame Size: 31 (bytes)
+; Stack Frame Size: 22 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
-;   98	
-;   99	
-;  100	
-;  101	/* Draws the map and initializes necessary variables.
-;  102	 * Should call 'createMap' first
-;  103	 * @param *level pointer to level_t to load
-;  104	 * @returns none. */
-;  105	void loadMap(level_t *level) {
-_loadMap:
-	CALL	__frameset0
-;  106		uint8_t x, y;
-;  107	
-;  108		curLevel = level;
-	LD	DE,(IX+6)
-	LD	(_curLevel),DE
-;  109		drawLevel(*level);
-	LD	HL,(IX+6)
-	PUSH	BC
-	PUSH	BC
-	PUSH	BC
-	LD	IY,0
-	ADD	IY,SP
-	LD	DE,IY
-	LD	BC,9
-	LDIR	
-	CALL	_drawLevel
-	POP	BC
-	POP	BC
-	POP	BC
-;  110		player.x = level->px;
-	LD	IY,(IX+6)
-	LD	A,(IY+0)
-	LD	(_player),A
-;  111		player.y = level->py;
-	LD	A,(IY+1)
-	LD	(_player+1),A
-;  112		initFire();
-	CALL	_initFire
-;  113		initAnimations();
-	CALL	_initAnimations
-;  114		Array_Clear(&flows);
-	LD	BC,_flows
-	PUSH	BC
-	CALL	_Array_Clear
-	POP	BC
-;  115	}
-	LD	SP,IX
-	POP	IX
-	RET	
-
-
-;**************************** _loadMap ***************************
-;Name                         Addr/Register   Size   Type
-;_flows                              IMPORT     12   variable
-;_Array_Clear                        IMPORT  -----   function
-;_initAnimations                     IMPORT  -----   function
-;_initFire                           IMPORT  -----   function
-;_player                             IMPORT     10   variable
-;_drawLevel                          IMPORT  -----   function
-;_curLevel                           IMPORT      3   variable
-;level                                 IX+6      3   parameter
-
-
-; Stack Frame Size: 9 (bytes)
-;       Spill Code: 0 (instruction)
-
-
-;  116	
-;  117	
-;  118	void completeLevel() {
+;  104	
+;  105	
+;  106	
+;  107	/* Draws the map and initializes necessary variables.
+;  108	 * Should call 'createMap' first
+;  109	 * @param *level pointer to level_t to load
+;  110	 * @returns none. */
+;  111	
+;  112	
+;  113	
+;  114	/* Draws the UI that occurs after completing a level.
+;  115	 * Should call 'createMap' first
+;  116	 * @returns none. */
+;  117	void completeLevel() {
 _completeLevel:
 	LD	HL,-1
 	CALL	__frameset
-;  119		uint8_t key;
-;  120		
-;  121		drawLevel(*curLevel);
-	PUSH	BC
-	PUSH	BC
-	PUSH	BC
-	OR	A,A
-	SBC	HL,HL
-	ADD	HL,SP
-	LD	DE,HL
-	LD	BC,9
-	LD	HL,(_curLevel)
-	LDIR	
+;  118		uint8_t key;
+;  119		
+;  120		drawLevel();
 	CALL	_drawLevel
-	POP	BC
-	POP	BC
-	POP	BC
-;  122	
-;  123		centeredString("Level Complete!", SCREEN_HEIGHT - 8);
+;  121	
+;  122		centeredString("Level Complete!", SCREEN_HEIGHT - 8);
 	LD	BC,232
 	PUSH	BC
-	LD	BC,L__13
+	LD	BC,L__12
 	PUSH	BC
 	CALL	_centeredString
 	POP	BC
 	POP	BC
-;  124	
-;  125		drawPlayer();
+;  123	
+;  124		drawPlayer();
 	CALL	_drawPlayer
-;  126		// add fireworks later??
-;  127		do {
-L_30:
-;  128			doAnimations();
+;  125		// add fireworks later??
+;  126		do {
+L_28:
+;  127			doAnimations();
 	CALL	_doAnimations
-;  129			gfx_BlitBuffer();
+;  128			gfx_BlitBuffer();
 	LD	BC,1
 	PUSH	BC
 	CALL	_gfx_Blit
 	POP	BC
-;  130		} while((key = os_GetCSC()) != sk_2nd);
+;  129		} while((key = os_GetCSC()) != sk_2nd);
 	CALL	_os_GetCSC
 	LD	(IX+-1),A
 	CP	A,54
-	JR	NZ,L_30
-;  131	
-;  132		
-;  133		nextLevel();
+	JR	NZ,L_28
+;  130	
+;  131		nextLevel();
 	CALL	_nextLevel
 	LD	SP,IX
 	POP	IX
@@ -544,7 +484,6 @@ L_30:
 ;_doAnimations                       IMPORT  -----   function
 ;_drawPlayer                         IMPORT  -----   function
 ;_centeredString                     IMPORT  -----   function
-;_curLevel                           IMPORT      3   variable
 ;_drawLevel                          IMPORT  -----   function
 ;key                                   IX-1      1   variable
 
@@ -554,7 +493,7 @@ L_30:
 
 
 	SEGMENT STRSECT
-L__13:
+L__12:
 	DB	"Level Complete!"
 	DB	0
 	XREF _rleDecompress:ROM
@@ -579,14 +518,12 @@ L__13:
 	XREF _malloc:ROM
 	XREF _os_GetCSC:ROM
 	XREF __imulu:ROM
-	XREF __frameset0:ROM
 	XREF __frameset:ROM
 	XREF __icmpzero:ROM
 	XREF __imul_b:ROM
 	XDEF _completeLevel
-	XDEF _loadMap
 	XDEF _drawLevel
 	XDEF _freeLevel
-	XDEF _createMap
+	XDEF _loadMap
 	XDEF _pipes
 	END

@@ -13,14 +13,14 @@ uint8_t firesAlive;
 
 
 void initFire() {
-    const unsigned int width = curLevel->width;
-    const unsigned int height = curLevel->height;
+    const unsigned int width = curLevel.width;
+    const unsigned int height = curLevel.height;
     unsigned int i;
     
     firesAlive = 0;
 
     for(i = 0; i < width * height; i++) {
-        tile_t tile = curLevel->data[i];
+        tile_t tile = curLevel.data[i];
 
         if(IS_FIRE(tile))
             firesAlive++;

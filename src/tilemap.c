@@ -22,31 +22,33 @@ const pipe_t pipes[] = {
 };
 
 
-void createMap(level_t *level, const uint8_t x, const uint8_t y, const uint8_t width, const uint8_t height, uint8_t *data, const bool isRLE) {
+void loadMap(mapstore_t map) {
 	unsigned int i;
-	const unsigned int area = (unsigned int)width * (unsigned int)height;
+	uint8_t *data = map.data;
+	const unsigned int area = (unsigned int)map.width * (unsigned int)map.height;
 
-	level->width = width;
-	level->height = height;
-	level->px = x;
-	level->py = y;
-	level->ox = (SCREEN_WIDTH/2) - width * (8*SCALEBY/2);
-	level->oy = (SCREEN_HEIGHT/2) - height * (4*SCALEBY);
-	level->data = malloc(area * sizeof(tile_t));
+	curLevel.width = map.width;
+	curLevel.height = map.height;
+	curLevel.px = map.sx;
+	curLevel.py = map.sy;
+	curLevel.ox = (SCREEN_WIDTH/2) - map.width * (8*SCALEBY/2);
+	curLevel.oy = (SCREEN_HEIGHT/2) - map.height * (4*SCALEBY);
+	curLevel.data = malloc(area * sizeof(tile_t));
 
 	// if compressed, then we will expand it
-	if(isRLE)
+	if(map.rleSize)
 	{
-		uint8_t *copy = data;
-		data = malloc(isRLE);
-		rleDecompress(copy, &data, isRLE);
+		uint8_t *copy = map.data;
+		data = malloc(area);
+		assert(data);
+		rleDecompress(copy, &data, map.rleSize);
 	}
 
-	assert(level->data);
+	assert(curLevel.data);
 
 	for(i = 0; i < area; i++)
 	{
-		tile_t *t = &level->data[i];
+		tile_t *t = &curLevel.data[i];
 		tilesprite_t tiledata = lookupTile(data[i]);
 
 		t->id = tiledata.id;
@@ -64,30 +66,34 @@ void createMap(level_t *level, const uint8_t x, const uint8_t y, const uint8_t w
 	}
 
 	// free alloted memory
-	if(isRLE)
+	if(map.rleSize)
 	{
 		free(data);
 	}
 
-	dbg_sprintf(dbgerr, "size: (%d, %d)\n", level->width, level->height);
+
+	drawLevel();
+	player.x = curLevel.px;
+	player.y = curLevel.py;
+	initFire();
+	initAnimations();
+	Array_Clear(&flows);
 }
 
 
-void freeLevel(level_t *l) {
-	uint8_t i;
-	
-	if(l->data)
-		free(l->data);
+void freeLevel() {
+	if(curLevel.data)
+		free(curLevel.data);
 }
 
 
-void drawLevel(level_t level) {
+void drawLevel() {
 	uint8_t x, y;
 	
 	gfx_FillScreen(COLOR_YELLOW);
-	for(y = 0; y < level.height; y++)
+	for(y = 0; y < curLevel.height; y++)
 	{
-		for(x = 0; x < level.width; x++)
+		for(x = 0; x < curLevel.width; x++)
 		{
 			tile_t tile = getTile(x, y);
 			drawTile(tile, x, y);
@@ -102,23 +108,16 @@ void drawLevel(level_t level) {
  * Should call 'createMap' first
  * @param *level pointer to level_t to load
  * @returns none. */
-void loadMap(level_t *level) {
-	uint8_t x, y;
-
-	curLevel = level;
-	drawLevel(*level);
-	player.x = level->px;
-	player.y = level->py;
-	initFire();
-	initAnimations();
-	Array_Clear(&flows);
-}
 
 
+
+/* Draws the UI that occurs after completing a level.
+ * Should call 'createMap' first
+ * @returns none. */
 void completeLevel() {
 	uint8_t key;
 	
-	drawLevel(*curLevel);
+	drawLevel();
 
 	centeredString("Level Complete!", SCREEN_HEIGHT - 8);
 
@@ -129,6 +128,5 @@ void completeLevel() {
 		gfx_BlitBuffer();
 	} while((key = os_GetCSC()) != sk_2nd);
 
-	
 	nextLevel();
 }

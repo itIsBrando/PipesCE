@@ -91,12 +91,10 @@ static const struct Map_t worldMaps[] = {
 	{"SNAKE PIPE", 7, 10, 0, 0, 9, 0}
 };
 
-level_t *curLevel;
+level_t curLevel;
 static uint8_t levelNumber = 0;
 
-static level_t lev[9];
-
-#define SIZEOF_LEV (sizeof(lev) / sizeof(lev[0]))
+#define SIZEOF_MAPS (sizeof(maps) / sizeof(maps[0]))
 #define SIZEOF_POSITIONS (sizeof(worldMaps) / sizeof(worldMaps[0]))
 
 // RLE = 8 bytes
@@ -118,6 +116,22 @@ static const uint8_t WorldMap[] = {
 	3,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  9,
 */
 	15, 1, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 1, 8, 1, 10, 2, 1, 5, 0, 1, 20, 1, 5, 4, 0, 1, 5, 2, 1, 6, 0, 1, 5, 2, 0, 1, 20, 1, 0, 1, 5, 2, 1, 1, 10, 2, 8, 1, 10, 1, 7, 1, 20, 1, 10, 1, 20, 1, 10, 2, 8, 1, 10, 2, 1, 1, 5, 3, 18, 1, 5, 3, 20, 1, 5, 2, 18, 1, 5, 2, 1, 1, 5, 3, 18, 1, 3, 1, 7, 2, 0, 1, 5, 2, 18, 1, 5, 2, 1, 1, 10, 1, 18, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 1, 1, 5, 1, 18, 1, 5, 4, 0, 1, 6, 1, 9, 1, 0, 1, 20, 1, 0, 2, 1, 1, 5, 1, 18, 1, 3, 1, 7, 1, 0, 1, 20, 1, 6, 1, 9, 4, 0, 2, 1, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 2, 8, 1, 10, 1, 8, 1, 10, 15, 1, 1, 6, 12, 8, 1, 7, 1, 5, 12, 0, 1, 5, 1, 3, 12, 8, 1, 9
+};
+
+const mapstore_t WorldMapData = {
+	1, 1, 14, 15, WorldMap, sizeof(WorldMap)
+};
+
+mapstore_t maps[] = {
+	{4, 1, 8, 7, lvl1,   false},
+	{1, 1, 8, 6, lvl2,   sizeof(lvl2)},
+	{1, 2, 8, 5, lvl3,   sizeof(lvl3)},
+	{2, 3, 8, 10, lvl4,  sizeof(lvl4)},
+ 	{4, 3, 7, 7, lvl5,   false},
+ 	{3, 1, 10, 8, lvl6,  sizeof(lvl6)},
+ 	{3, 1, 10, 6, lvl7,  sizeof(lvl7)},
+ 	{3, 1, 10, 9, lvl8,  sizeof(lvl8)},
+ 	{1, 1, 10, 11, lvl9, sizeof(lvl9)},
 };
 
 void main(void) {
@@ -162,25 +176,11 @@ void main(void) {
 
 	waterSpriteBuffer[0] = waterSpriteBuffer[1] = 8;
 	
-	createMap(&lev[0], 4, 1, 8, 7, lvl1, false);
-	createMap(&lev[1], 1, 1, 8, 6, lvl2, (bool)sizeof(lvl2));
-	createMap(&lev[2], 1, 2, 8, 5, lvl3, (bool)(sizeof(lvl3)));
-	createMap(&lev[3], 2, 3, 8, 10, lvl4, (bool)(sizeof(lvl4)));
-	createMap(&lev[4], 4, 3, 7, 7, lvl5, false);
-	createMap(&lev[5], 3, 1, 10, 8, lvl6, (bool)(sizeof(lvl6)));
-	createMap(&lev[6], 3, 1, 10, 6, lvl7, (bool)(sizeof(lvl7)));
-	createMap(&lev[7], 3, 1, 10, 9, lvl8, (bool)(sizeof(lvl8)));
-	createMap(&lev[8], 1, 1, 10, 11, lvl9, (bool)(sizeof(lvl9)));
-	
-	// title screen
-	
 	gfx_SetDraw(gfx_buffer);
-
 	gfx_FillScreen(COLOR_YELLOW);
 
+	// title screen
 	levelNumber = showWorldMap();
-
-	loadMap(&lev[levelNumber]);
 
 	do {
 		kb_Scan();
@@ -188,7 +188,6 @@ void main(void) {
 
 		if(kGroup6 == kb_Clear) {
 			levelNumber = showWorldMap();
-			loadMap(&lev[levelNumber]);
 		}
 		
 		erasePlayer();
@@ -223,10 +222,8 @@ void cleanUp() {
 
 	gfx_End();
 
-	// free each level
-	for(i = 0; i < SIZEOF_LEV; i++) {
-		freeLevel(&lev[i]);
-	}
+	freeLevel();
+
 
 	Array_Destroy(&flows);
 	Array_Destroy(&animationTile);
@@ -270,11 +267,14 @@ void move(uint8_t key) {
 // Loads the next level
 void nextLevel() {
 	setLevelCompletion(levelNumber);
+	freeLevel();	
 
-	if(++levelNumber >= SIZEOF_LEV)
+
+	if(++levelNumber >= SIZEOF_MAPS)
 		levelNumber = 0;
 
-	loadMap(&lev[levelNumber]);
+	
+	loadMap(maps[levelNumber]);
 }
 
 
@@ -313,8 +313,7 @@ uint8_t showWorldMap() {
 	uint8_t level = 0;
 	struct Map_t *curPosition;
 
-	createMap(&map, 1, 1, 14, 15, WorldMap, sizeof(WorldMap));
-	loadMap(&map);
+	loadMap(WorldMapData);
 	
 	gfx_SetTextBGColor(30);
 	gfx_SetTextTransparentColor(30);
@@ -322,7 +321,7 @@ uint8_t showWorldMap() {
 	gfx_SetTextFGColor(COLOR_BLACK);
 
 	// if a level has been completed, then set a star tile
-	for(key = 0; key < SIZEOF_LEV; key++)
+	for(key = 0; key < SIZEOF_MAPS; key++)
 	{
 		const struct Map_t m = worldMaps[key];
 
@@ -374,6 +373,9 @@ uint8_t showWorldMap() {
 		gfx_BlitBuffer();
 	}
 
-	freeLevel(&map);
+	freeLevel();
+
+	loadMap(maps[curPosition->id]);
+
 	return curPosition->id;
 }

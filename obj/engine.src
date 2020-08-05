@@ -195,13 +195,11 @@ _1temp4:
 _chkCollision:
 	LD	HL,-16
 	CALL	__frameset
-;   44		const uint8_t w = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   44		const uint8_t w = curLevel.width;
+	LD	A,(_curLevel+4)
 	LD	(IX+-1),A
-;   45		const uint8_t h = curLevel->height;
-	LD	IY,(_curLevel)
-	LD	A,(IY+5)
+;   45		const uint8_t h = curLevel.height;
+	LD	A,(_curLevel+5)
 	LD	(IX+-2),A
 ;   46	
 ;   47		if(x > w || x < 0 || y > h || y < 0) {
@@ -262,7 +260,7 @@ L_12:
 ;Name                         Addr/Register   Size   Type
 ;_getTile                            IMPORT  -----   function
 ;_2temp9                             STATIC      7   variable
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;t                                     IX-9      7   variable
 ;h                                     IX-2      1   variable
 ;w                                     IX-1      1   variable
@@ -293,12 +291,11 @@ _2temp9:
 _getTile:
 	LD	HL,-1
 	CALL	__frameset
-;   62		const uint8_t width = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   62		const uint8_t width = curLevel.width;
+	LD	A,(_curLevel+4)
 	LD	(IX+-1),A
 ;   63	
-;   64		return curLevel->data[column * width + row];
+;   64		return curLevel.data[column * width + row];
 	LD	A,(IX+12)
 	UEXT	HL
 	LD	L,A
@@ -315,9 +312,8 @@ _getTile:
 	LD	L,A
 	ADD	HL,BC
 	LD	A,7
-	LD	IY,(_curLevel)
-	LD	BC,(IY+6)
 	CALL	__imul_b
+	LD	BC,(_curLevel+6)
 	LEA	IY,IX+6
 	LD	DE,(IY)
 	ADD	HL,BC
@@ -332,7 +328,7 @@ _getTile:
 
 ;**************************** _getTile ***************************
 ;Name                         Addr/Register   Size   Type
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;width                                 IX-1      1   variable
 ;column                               IX+12      1   parameter
 ;row                                   IX+9      1   parameter
@@ -353,11 +349,10 @@ _getTile:
 _getTilePointer:
 	LD	HL,-1
 	CALL	__frameset
-;   74		const uint8_t width = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   74		const uint8_t width = curLevel.width;
+	LD	A,(_curLevel+4)
 	LD	(IX+-1),A
-;   75		return &curLevel->data[column * width + row];
+;   75		return &curLevel.data[column * width + row];
 	LD	A,(IX+9)
 	UEXT	HL
 	LD	L,A
@@ -374,9 +369,8 @@ _getTilePointer:
 	LD	L,A
 	ADD	HL,BC
 	LD	A,7
-	LD	IY,(_curLevel)
-	LD	BC,(IY+6)
 	CALL	__imul_b
+	LD	BC,(_curLevel+6)
 	ADD	HL,BC
 ;   76	}
 	LD	SP,IX
@@ -386,7 +380,7 @@ _getTilePointer:
 
 ;**************************** _getTilePointer ***************************
 ;Name                         Addr/Register   Size   Type
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;width                                 IX-1      1   variable
 ;column                                IX+9      1   parameter
 ;row                                   IX+6      1   parameter
@@ -404,17 +398,15 @@ _getTilePointer:
 ;   82	 * @returns tile_t *. */
 ;   83	tile_t *getTilePointerSafely(uint8_t row, uint8_t column) {
 _getTilePointerSafely:
-	LD	HL,-14
+	LD	HL,-8
 	CALL	__frameset
-;   84		const uint8_t width = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   84		const uint8_t width = curLevel.width;
+	LD	A,(_curLevel+4)
 	LD	(IX+-1),A
-;   85		const uint8_t height = curLevel->height;
-	LD	IY,(_curLevel)
-	LD	A,(IY+5)
+;   85		const uint8_t height = curLevel.height;
+	LD	A,(_curLevel+5)
 	LD	(IX+-2),A
-;   86		return &curLevel->data[(column >= height ? height-1 : column) * width + (row >= width ? width-1 : row)];
+;   86		return &curLevel.data[(column >= height ? height-1 : column) * width + (row >= width ? width-1 : row)];
 	LD	A,(IX+9)
 	CP	A,(IX+-2)
 	JR	C,L_17
@@ -445,22 +437,17 @@ L_21:
 	LD	L,A
 	LD	(IX+-8),HL
 L_22:
-	LD	IY,(_curLevel)
 	LD	A,(IX+-1)
-	LD	BC,(IX+-5)
-	LD	DE,(IX+-8)
-	LD	(IX+-14),DE	; spill
-	LD	DE,(IY+6)
 	UEXT	HL
 	LD	L,A
+	LD	BC,(IX+-5)
 	CALL	__imuls
-	LD	(IX+-11),DE	; spill
-	LD	DE,(IX+-14)	; unspill
-	ADD	HL,DE
-	LD	DE,(IX+-11)	; unspill
+	LD	BC,(IX+-8)
+	ADD	HL,BC
 	LD	A,7
 	CALL	__imul_b
-	ADD	HL,DE
+	LD	BC,(_curLevel+6)
+	ADD	HL,BC
 ;   87	}
 	LD	SP,IX
 	POP	IX
@@ -469,7 +456,7 @@ L_22:
 
 ;**************************** _getTilePointerSafely ***************************
 ;Name                         Addr/Register   Size   Type
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;temp19                                IX-8      3   variable
 ;temp15                                IX-5      3   variable
 ;height                                IX-2      1   variable
@@ -478,7 +465,7 @@ L_22:
 ;row                                   IX+6      1   parameter
 
 
-; Stack Frame Size: 26 (bytes)
+; Stack Frame Size: 20 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
@@ -494,16 +481,15 @@ L_22:
 _setTile:
 	LD	HL,-8
 	CALL	__frameset
-;   97		const uint8_t width = curLevel->width;
-	LD	IY,(_curLevel)
-	LD	A,(IY+4)
+;   97		const uint8_t width = curLevel.width;
+	LD	A,(_curLevel+4)
 	LD	(IX+-1),A
 ;   98	
 ;   99		if(tile) {
 	LD	HL,(IX+12)
 	CALL	__icmpzero
 	JR	Z,L_26
-;  100			curLevel->data[column * width + row] = *tile;
+;  100			curLevel.data[column * width + row] = *tile;
 	LD	A,(IX+9)
 	UEXT	HL
 	LD	L,A
@@ -520,9 +506,8 @@ _setTile:
 	LD	L,A
 	ADD	HL,BC
 	LD	A,7
-	LD	IY,(_curLevel)
-	LD	BC,(IY+6)
 	CALL	__imul_b
+	LD	BC,(_curLevel+6)
 	ADD	HL,BC
 	LD	DE,HL
 	LD	HL,(IX+12)
@@ -558,7 +543,7 @@ L_26:
 	LD	BC,7
 	LDIR	
 ;  104	
-;  105			curLevel->data[column * width + row] = t;
+;  105			curLevel.data[column * width + row] = t;
 	LD	A,(IX+9)
 	UEXT	HL
 	LD	L,A
@@ -575,9 +560,8 @@ L_26:
 	LD	L,A
 	ADD	HL,BC
 	LD	A,7
-	LD	IY,(_curLevel)
-	LD	BC,(IY+6)
 	CALL	__imul_b
+	LD	BC,(_curLevel+6)
 	ADD	HL,BC
 	LD	DE,HL
 	LEA	HL,IX+-8
@@ -617,7 +601,7 @@ L_27:
 ;Name                         Addr/Register   Size   Type
 ;_3temp24                            STATIC      7   variable
 ;_drawTile                           IMPORT  -----   function
-;_curLevel                           IMPORT      3   variable
+;_curLevel                           IMPORT      9   variable
 ;t                                     IX-8      7   variable
 ;width                                 IX-1      1   variable
 ;tile                                 IX+12      3   parameter

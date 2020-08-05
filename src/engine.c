@@ -41,8 +41,8 @@ Position facingOffset(Direction d) {
  * @returns tile_t.
  * @see getTile */
 tile_t chkCollision(uint8_t x, uint8_t y) {
-	const uint8_t w = curLevel->width;
-	const uint8_t h = curLevel->height;
+	const uint8_t w = curLevel.width;
+	const uint8_t h = curLevel.height;
 
 	if(x > w || x < 0 || y > h || y < 0) {
 		// create a fake tile
@@ -59,9 +59,9 @@ tile_t chkCollision(uint8_t x, uint8_t y) {
  * @param column Y coordinate of tile
  * @returns tile_t. */
 tile_t getTile(uint8_t row, uint8_t column) {
-	const uint8_t width = curLevel->width;
+	const uint8_t width = curLevel.width;
 
-	return curLevel->data[column * width + row];
+	return curLevel.data[column * width + row];
 }
 
 
@@ -71,8 +71,8 @@ tile_t getTile(uint8_t row, uint8_t column) {
  * @param column Y coordinate of tile
  * @returns tile_t *. */
 tile_t *getTilePointer(uint8_t row, uint8_t column) {
-	const uint8_t width = curLevel->width;
-	return &curLevel->data[column * width + row];
+	const uint8_t width = curLevel.width;
+	return &curLevel.data[column * width + row];
 }
 
 
@@ -81,9 +81,9 @@ tile_t *getTilePointer(uint8_t row, uint8_t column) {
  * @param column Y coordinate of tile
  * @returns tile_t *. */
 tile_t *getTilePointerSafely(uint8_t row, uint8_t column) {
-	const uint8_t width = curLevel->width;
-	const uint8_t height = curLevel->height;
-	return &curLevel->data[(column >= height ? height-1 : column) * width + (row >= width ? width-1 : row)];
+	const uint8_t width = curLevel.width;
+	const uint8_t height = curLevel.height;
+	return &curLevel.data[(column >= height ? height-1 : column) * width + (row >= width ? width-1 : row)];
 }
 
 
@@ -94,15 +94,15 @@ tile_t *getTilePointerSafely(uint8_t row, uint8_t column) {
  * @param *tile pointer to the draw to write (unchanged).
  * @returns none. */
 void setTile(uint8_t row, uint8_t column, const tile_t *tile) {
-	const uint8_t width = curLevel->width;
+	const uint8_t width = curLevel.width;
 
 	if(tile) {
-		curLevel->data[column * width + row] = *tile;
+		curLevel.data[column * width + row] = *tile;
 		drawTile(*tile, row, column);
 	} else {
 		tile_t t = {0};
 
-		curLevel->data[column * width + row] = t;
+		curLevel.data[column * width + row] = t;
 		drawTile(t, row, column);
 	}
 	
