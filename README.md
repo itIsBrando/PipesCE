@@ -1,7 +1,8 @@
 # Pipes (C)
 Pipes game for the TI-84PCE written in C.
 <br>
-![Cool!](screenie.png)
+![Cool](screenie.png)
+![More coolness](screenie2.png)
 
 Based off of the PICO-8 version called ["Toy Box Pipe"](https://www.lexaloffle.com/bbs/?tid=36432)  
 *This is still a WIP*
@@ -14,6 +15,13 @@ Based off of the PICO-8 version called ["Toy Box Pipe"](https://www.lexaloffle.c
 - Animated tiles
 - RLE Compressed levels
 - A cool custom array library
+
+#### Controls
+ - *Arrow keys* to move
+ - *2nd* to pull a pipe
+ - *Clear* to go back or exit
+ - *2nd*/*Enter* to go forwards
+
 
 ### Future Plans
 - Level editor
