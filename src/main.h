@@ -24,6 +24,10 @@
 #define SCREEN_HEIGHT	240
 #define SCREEN_WIDTH	320
 
+#define SIZEOF_MAPS (sizeof(maps) / sizeof(maps[0]))
+#define SIZEOF_POSITIONS (sizeof(worldMaps) / sizeof(worldMaps[0]))
+
+
 typedef struct {
     uint8_t item1;
     uint8_t item2;

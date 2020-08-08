@@ -15,7 +15,7 @@
 Array flows;
 uint8_t waterSpriteBuffer[66];
 static bool keepWaterTick = false;
-
+static bool levelComplete;
 
 void drainWater() {
     const uint8_t width = curLevel.width;
@@ -29,7 +29,7 @@ void drainWater() {
             tile_t tile = getTile(x, y);
 
             // find spout
-            if(IS_PIPE(tile) && tile.data.hasWater)
+            if(pipeFromIndex(tile.id) && tile.data.hasWater)
             {
                 tile.data.hasWater = false;
             // reignite blue fires
@@ -55,24 +55,6 @@ void drainWater() {
     player.isWaterFlowing = false;
 }
 
-void rotateTile(uint8_t x, uint8_t y) {
-    uint8_t i;
-    uint8_t ogTile[] = {TILE_PIPE_VERTICAL, TILE_PIPE_HORIZONTAL, TILE_PIPE_TOP_LEFT, TILE_PIPE_TOP_RIGHT, TILE_PIPE_BOT_RIGHT, TILE_PIPE_BOT_LEFT};
-    uint8_t newTile[] = {TILE_PIPE_HORIZONTAL, TILE_PIPE_VERTICAL, TILE_PIPE_TOP_RIGHT, TILE_PIPE_BOT_RIGHT, TILE_PIPE_BOT_LEFT, TILE_PIPE_TOP_LEFT};
-    tile_t *tile = getTilePointer(x, y);
-
-    for(i = 0; i < sizeof(ogTile); i++)
-    {
-        if(tile->id == ogTile[i])
-        {
-            
-            tile->id = newTile[i];
-            setTile(x, y, tile);
-            return;
-        }
-    }
-
-}
 
 void initFlows() {
     const uint8_t width = curLevel.width;
@@ -91,7 +73,6 @@ void initFlows() {
             // find spout
             tile_t tile = chkCollision(x, y);
 
-
             if(IS_SPOUT(tile))
             {
                 createFlow(x, y, pipeFromIndex(tile.id)->directions);
@@ -100,6 +81,7 @@ void initFlows() {
             {
                 rotateTile(x, y);
             }
+
         }
         
     }
@@ -136,13 +118,17 @@ void tickFlows() {
     // set to false, but if we get a flow that is still going, set to true
     keepWaterTick = false;
 
-    foreach(flows, i) {
+    foreach(flows, i)
+    {
         const flow_t *f = (flow_t*)Array_Get(&flows, i);
 
         if(doFlow(f))
             keepWaterTick = true;
         else
             i--;
+        
+        if(levelComplete)
+            return;
     }
 }
 
@@ -153,6 +139,7 @@ bool doFlow(flow_t *self) {
     uint8_t i;
     bool hasMoved = false;
 
+    levelComplete = false;
     directions[0] = (d & BIT_RIGHT) ? RIGHT : -1;
     directions[1] = (d & BIT_LEFT) ? LEFT : -1;
     directions[2] = (d & BIT_UP) ? UP : -1;
@@ -164,22 +151,29 @@ bool doFlow(flow_t *self) {
         {
             Position pos = facingOffset(directions[i]);
             tile_t *tile;
-            bool directionsMatch;
+            pipe_t *pipe;
+            bool directionsMatch, isPipeOnRotation;
+
             addPosition(&pos, self->position);
             tile = getTilePointerSafely(pos.x, pos.y);
+            pipe = pipeFromIndex(tile->id);
 
-            directionsMatch = (1<<(uint8_t)getOppositeDirection(directions[i])) & pipeFromIndex(tile->id)->directions;
-            if(tile->type == TYPE_PIPE && !tile->data.hasWater && directionsMatch )
+            // ensure that the pipe is facing the proper direction
+            directionsMatch = (1<<(uint8_t)getOppositeDirection(directions[i])) & pipe->directions;
+            // if there is a pipe on a rotation tile, then force water flow
+            isPipeOnRotation = tile->type == TYPE_ROTATE && pipe;
+
+            if((tile->type == TYPE_PIPE || isPipeOnRotation) && !tile->data.hasWater && directionsMatch )
             {
                 flow_t f;
 
-                f.spreadDirection = pipeFromIndex(tile->id)->directions;
+                // create a new flow node
+                f.spreadDirection = pipe->directions;
                 f.position = pos;
                 Array_Append(&flows, &f);
             
                 tile->data.hasWater = true;
                 setTile(pos.x, pos.y, tile);
-                dbg_sprintf(dbgerr, "found flow at (%d, %d)\n", pos.x, pos.y);
                 
                 hasMoved = true;
             } else if (tile->type == TYPE_FIRE && tile->data.fire.isLit)
@@ -189,6 +183,7 @@ bool doFlow(flow_t *self) {
                 if(!putOutFire(tile, pos.x, pos.y))
                 {
                     completeLevel();
+                    levelComplete = true;
                     // when we complete level, any active flows do not get destroyed
                     return false;
                 }
@@ -226,14 +221,14 @@ void deleteFlow(flow_t *self) {
     // must be able to look up stuff
     uint8_t i;
 
-    // Array_Remove(&flows, self);
-    foreach(flows, i)
+    Array_Remove(&flows, self);
+/*     foreach(flows, i)
     {
         if((flow_t *)Array_Get(&flows, i) == self)
             Array_RemoveAt(&flows, i);
             // Array_Remove(&flows, self);
     }
-
+ */
 }
 
 void animateWater() {

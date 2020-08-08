@@ -1,4 +1,4 @@
-# Pipes (C)
+# PipesCE (C)
 Pipes game for the TI-84PCE written in C.
 <br>
 ![Cool](screenie.png)
@@ -26,4 +26,4 @@ Based off of the PICO-8 version called ["Toy Box Pipe"](https://www.lexaloffle.c
 ### Future Plans
 - Level editor
 - All levels
-- Procedural Generation??
+- Randomized level Generation??

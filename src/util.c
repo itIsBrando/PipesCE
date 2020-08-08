@@ -4,7 +4,7 @@
 #include "images/colors.h"
 
 #define SAVE_NAME "PIPESAVE"
-#define CURRENT_SAVE_VERSION 1
+#define CURRENT_SAVE_VERSION 2
 
 static ti_var_t saveSlot;
 static save_t save;
@@ -21,13 +21,12 @@ void loadData() {
         memcpy(&save, ti_GetDataPtr(file), sizeof(save_t));
         if(save.version != CURRENT_SAVE_VERSION)
         {
-            gfx_PrintStringXY("Save version depreciated.", 0, 0);
-            gfx_PrintStringXY("Attempting to upgrade save.", 0, 8);
-            upgradeSave();
+            file = upgradeSave();
         }
     } else {
         file = ti_Open(SAVE_NAME, "w+");
         ti_Resize(sizeof(save_t), file);
+        save.version = CURRENT_SAVE_VERSION;
     }
 
     saveSlot = file;
@@ -38,6 +37,7 @@ void saveData() {
     const void *pointer = ti_GetDataPtr(saveSlot);
 
     memcpy(pointer, &save, sizeof(save_t));
+    ti_CloseAll();
 }
 
 
@@ -53,43 +53,50 @@ void upgradeSaveFail() {
 }
 
 
-void upgradeSave() {
+ti_var_t upgradeSave() {
     ti_var_t file;
-    unsigned int oldSaveSize;
-    uint8_t oldVersion;
-    void *pointer;
+    save_t *oldSave = malloc(sizeof(save_t));
 
+    gfx_PrintStringXY("Save version depreciated.", 0, 0);
+    gfx_PrintStringXY("Attempting to upgrade save.", 0, 8);
+            
     ti_CloseAll();
     file = ti_Open(SAVE_NAME, "r+");
-    pointer = ti_GetDataPtr(file);
-    oldSaveSize = ti_GetSize(file);
-
-    // copy old data into the save struct
-    memcpy(&save, pointer, oldSaveSize);
-
-    // change size to fit new struct size
     ti_Resize(sizeof(save_t), file);
 
-    oldVersion = save.version;
-    save.version = CURRENT_SAVE_VERSION;
+    // copy old data into the save struct
+    memcpy(oldSave, &save, sizeof(save_t));
+
 
     // all handable save versions
-    switch(oldVersion)
+    switch(oldSave->version)
     {
         case 0:
-            memcpy(pointer, &save, oldSaveSize);
+            break;
+        case 1:
+            // version byte (1) = lastLevel
+            // then copy all the complete level stuff
+            memcpy(&save.completed, &oldSave->lastLevelPlayed, 20);
             break;
         default:
             upgradeSaveFail();
 
     }
     // change version
+    save.version = CURRENT_SAVE_VERSION;
 
-    gfx_PrintStringXY("Save upgraded to newest version: ", 0, 16);
+    gfx_PrintStringXY("Save upgraded from ", 0, 16);
+    gfx_PrintUInt(oldSave->version, 2);
+    gfx_PrintString("to newest version ");
     gfx_PrintUInt(CURRENT_SAVE_VERSION, 2);
 
+    free(oldSave);
+
     while(!os_GetCSC());
+
+    return file;
 }
+
 
 void setLevelCompletion(uint8_t level) {
     save.completed[level] = true;    
@@ -99,6 +106,17 @@ void setLevelCompletion(uint8_t level) {
 bool getLevelCompletion(uint8_t level) {
     return save.completed[level];
 }
+
+uint8_t getLastLevelPlayed()
+{
+    return save.lastLevelPlayed;
+}
+
+void setLastLevelPlayed(uint8_t level)
+{
+    save.lastLevelPlayed = level;
+}
+
 
 
 /* Fully compatibilty with normal RLE compression.

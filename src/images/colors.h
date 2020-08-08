@@ -5,8 +5,8 @@
 */
 
 #define COLOR_GRAY 9
-#define COLOR_BLACK 0
-#define COLOR_YELLOW 1
+#define COLOR_BLACK 1
+#define COLOR_YELLOW 0
 #define COLOR_RED 17
 #define COLOR_TRANSPARENT 5
 

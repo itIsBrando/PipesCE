@@ -24,7 +24,4 @@ void tickFlows();
 
 void animateWater();
 
-// this should move to engine.c
-void rotateTile(uint8_t x, uint8_t y);
-
 #endif

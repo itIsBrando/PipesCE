@@ -2,7 +2,8 @@
 #define TILEMAP_H
 
 
-#define PIPES_SIZE 8
+#define PIPES_SIZE 11
+#define TOTAL_LEVELS 20
 
 typedef struct {
 	uint8_t directions; // directions that the water can flow
@@ -12,10 +13,12 @@ typedef struct {
 extern struct pipe_t;
 extern pipe_t pipes[];
 
-void loadMap(mapstore_t);
+extern tile_t *levelPointers[TOTAL_LEVELS];
+
+void loadMap(mapstore_t, uint8_t);
 void drawLevel();
 void completeLevel();
-void freeLevel();
 
+void rotateTile(uint8_t x, uint8_t y);
 
 #endif

@@ -122,7 +122,7 @@ void Array_Remove(Array *self, var item) {
  * ***lastUsed is not modified!!!***
  * @param &self pointer to array to modify
  * @param size number of elements
- * @returns true if succesful.*/
+ * @returns true if successful.*/
 bool Array_Resize(Array *self, unsigned int size) {
     const unsigned int actualSize = size * self->nsize;
 

@@ -8,24 +8,31 @@
 #include "water.h"
 #include "util.h"
 
+tile_t *levelPointers[TOTAL_LEVELS];
 
 // these are not required to be in a particular order
 const pipe_t pipes[] = {
 	{BIT_RIGHT | BIT_DOWN, TILE_PIPE_BOT_RIGHT},
 	{BIT_LEFT | BIT_DOWN, TILE_PIPE_BOT_LEFT},
-	{BIT_LEFT | BIT_RIGHT, TILE_PIPE_HORIZONTAL},
 	{BIT_UP | BIT_RIGHT, TILE_PIPE_TOP_RIGHT},
+	{BIT_LEFT | BIT_UP, TILE_PIPE_TOP_LEFT},
+	{BIT_LEFT | BIT_RIGHT, TILE_PIPE_HORIZONTAL},
 	{BIT_DOWN | BIT_UP, TILE_PIPE_VERTICAL},
 	{BIT_DOWN, TILE_SPOUT_BOT},
-	{BIT_LEFT | BIT_UP, TILE_PIPE_TOP_LEFT},
+	{BIT_UP, TILE_SPOUT_TOP},
+	{BIT_LEFT, TILE_SPOUT_LEFT},
+	{BIT_RIGHT, TILE_SPOUT_RIGHT},
 	{BIT_LEFT | BIT_UP | BIT_DOWN | BIT_RIGHT, TILE_PIPE_ALL},
 };
 
-
-void loadMap(mapstore_t map) {
+// index = level number + 1. index = 0 if map is the world map
+void loadMap(mapstore_t map, uint8_t index) {
 	unsigned int i;
 	uint8_t *data = map.data;
-	const unsigned int area = (unsigned int)map.width * (unsigned int)map.height;
+	const unsigned int area = (unsigned int)(map.width) * (unsigned int)(map.height);
+
+	Array_Clear(&flows);
+	Array_Clear(&animationTile);
 
 	curLevel.width = map.width;
 	curLevel.height = map.height;
@@ -33,12 +40,29 @@ void loadMap(mapstore_t map) {
 	curLevel.py = map.sy;
 	curLevel.ox = (SCREEN_WIDTH/2) - map.width * (8*SCALEBY/2);
 	curLevel.oy = (SCREEN_HEIGHT/2) - map.height * (4*SCALEBY);
-	curLevel.data = malloc(area * sizeof(tile_t));
+
+	// if we have allocated memory for the level, don't malloc again
+	// instead use the pointer we kept track of
+	if(index == 0 || levelPointers[index-1] == NULL)
+	{
+		curLevel.data = malloc(area * sizeof(tile_t));
+
+		if(index)
+			levelPointers[index-1] = curLevel.data;
+	}
+	else {
+		curLevel.data = levelPointers[index-1];
+	}
+	
+
+	dbg_sprintf(dbgerr, "benchmark 1: %p\n", curLevel.data);
+
 
 	// if compressed, then we will expand it
 	if(map.rleSize)
 	{
 		uint8_t *copy = map.data;
+		dbg_sprintf(dbgerr, "benchmark 2\n");
 		data = malloc(area);
 		assert(data);
 		rleDecompress(copy, &data, map.rleSize);
@@ -83,13 +107,6 @@ void loadMap(mapstore_t map) {
 	Array_Clear(&flows);
 }
 
-
-void freeLevel() {
-	if(curLevel.data)
-		free(curLevel.data);
-}
-
-
 void drawLevel() {
 	uint8_t x, y;
 	
@@ -105,6 +122,30 @@ void drawLevel() {
 
 }
 
+
+
+/* Safely rotates a pipe at (x, y).
+ * @param X row
+ * @param Y column
+ * @returns none. */
+void rotateTile(uint8_t x, uint8_t y) {
+    uint8_t i;
+    uint8_t ogTile[] = {TILE_PIPE_VERTICAL, TILE_PIPE_HORIZONTAL, TILE_PIPE_TOP_LEFT, TILE_PIPE_TOP_RIGHT, TILE_PIPE_BOT_RIGHT, TILE_PIPE_BOT_LEFT};
+    uint8_t newTile[] = {TILE_PIPE_HORIZONTAL, TILE_PIPE_VERTICAL, TILE_PIPE_TOP_RIGHT, TILE_PIPE_BOT_RIGHT, TILE_PIPE_BOT_LEFT, TILE_PIPE_TOP_LEFT};
+    tile_t *tile = getTilePointer(x, y);
+
+    for(i = 0; i < sizeof(ogTile); i++)
+    {
+        if(tile->id == ogTile[i])
+        {
+            
+            tile->id = newTile[i];
+            setTile(x, y, tile);
+            return;
+        }
+    }
+
+}
 
 
 /* Draws the map and initializes necessary variables.

@@ -180,15 +180,19 @@ Direction getOppositeDirection(Direction dir) {
  * @param dy y displacement
  * @returns a 'pipe_t' or NULL if not found.*/
 void movePlayer(char dx, char dy) {
-	const tile_t tile = chkCollision(player.x + dx, player.y + dy);
+	tile_t tile = chkCollision(player.x + dx, player.y + dy);
+	bool forceMove = false;
 
 	// if we found a pipe
 	if(pipeFromIndex(tile.id)) {
 		// check if we moved that tile, if so, move player, else return
 		if(moveTile(player.x + dx, player.y + dy, player.direction))
-			goto forceMove;
-		else
-			return;
+		{
+			// if `moveTile` succeeded, then `tile` will have changed
+			tile = chkCollision(player.x + dx, player.y + dy);
+			// force the player to move
+			forceMove = true;
+		}
 	}
 
 
@@ -199,15 +203,14 @@ void movePlayer(char dx, char dy) {
 		const uint8_t x = player.x + (char)pos.x, y = player.y + (char)pos.y;
 		const tile_t t = chkCollision(x, y);
 
-		if(IS_PIPE(t) && !isSolid(tile.id))
+		if(pipeFromIndex(t.id) && !isSolid(tile.id))
 			moveTile(x, y, player.direction);
 		
 	}
 
 
 	// initate move if tile is not solid and we are not currently moving
-	if(!isSolid(tile.id)) {
-forceMove:
+	if(forceMove || !isSolid(tile.id)) {
 		player.isMoving = true;
 		player.dx = dx != 0;
 		player.dy = dy != 0;
@@ -225,7 +228,7 @@ bool moveTile(uint8_t x, uint8_t y, Direction dir) {
 	const Position pos = facingOffset(dir);
 	const uint8_t newX = x + (char)pos.x, newY = y + (char)pos.y;
 	const tile_t newTile = chkCollision(newX, newY);
-	const bool isRotate = newTile.type == TYPE_ROTATE;
+	const bool isRotate = newTile.type == TYPE_ROTATE && newTile.id == TILE_ROTATION;
 	tile_t tile = getTile(x, y);
 
 	if ((isRotate || newTile.id == 0) && isPushable(tile.id))
