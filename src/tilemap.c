@@ -114,7 +114,7 @@ void lvl_free()
 {
 	uint8_t i;
 
-	for(i = 0; i < sizeof(levelPointers); i++)
+	for(i = 0; i < SIZEOF_LEVEL_POINTERS; i++)
 	{
 		// if malloced, then free and set to null
 		if(levelPointers[i])

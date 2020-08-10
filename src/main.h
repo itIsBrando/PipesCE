@@ -26,6 +26,7 @@
 
 #define SIZEOF_MAPS (sizeof(maps) / sizeof(maps[0]))
 #define SIZEOF_POSITIONS (sizeof(worldMaps) / sizeof(worldMaps[0]))
+#define SIZEOF_LEVEL_POINTERS (sizeof(levelPointers) / sizeof(levelPointers[0]))
 
 
 typedef struct {

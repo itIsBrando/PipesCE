@@ -115,9 +115,7 @@ void wtr_createFlow(uint8_t x, uint8_t y, Direction dir) {
     f.spreadDirection = dir;
 
     Array_Append(&flows, &f);
-    
-    //dbg_sprintf(dbgerr, "createflow dir: %d, array dir: %d, (%d,%d)\n", f.spreadDirection, newF->spreadDirection, newF->position.x, newF->position.y);
-    
+        
     tile->data.hasWater = true;
     setTile(x, y, tile);
     
@@ -192,7 +190,8 @@ bool wtr_doFlow(flow_t *self) {
                 f.spreadDirection = pipe->directions;
                 f.position = pos;
                 Array_Append(&flows, &f);
-            
+
+                // redraw tile with water
                 tile->data.hasWater = true;
                 setTile(pos.x, pos.y, tile);
                 

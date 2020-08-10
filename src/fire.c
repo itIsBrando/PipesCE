@@ -39,7 +39,7 @@ void fre_create(tile_t *tile) {
     fire_t *f = &tile->data.fire;
     
     f->isLit = true;
-    f->isPersistent = tile->id == TILE_FIRE_1 ? false : true;
+    f->isPersistent = tile->id != TILE_FIRE_1;
     tile->type = TYPE_FIRE;
 }
 
@@ -55,7 +55,6 @@ uint8_t fre_extinguish(tile_t *t, uint8_t x, uint8_t y) {
     uint8_t i;
 
     firesAlive--;
-    dbg_sprintf(dbgerr, "Fire put out: (%d, %d), %d\n", x, y, firesAlive);
 
     if(t->data.fire.isPersistent) {
 

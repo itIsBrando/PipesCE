@@ -26,27 +26,28 @@ void scrn_initAnimations() {
     {
         for (x = 0; x < curLevel.width; x++)
         {
-            tile_t tile = getTile(x, y);
             animation_t a;
+           const uint8_t id = getTile(x, y).id;
 
+
+            switch (id)
+            {
+                case TILE_FIRE_1:
+                    a.item1 = TILE_FIRE_1;
+                    a.item2 = TILE_FIRE_2;
+                    break;
+                case TILE_BLUE_FIRE_1:
+                    a.item1 = TILE_BLUE_FIRE_1;
+                    a.item2 = TILE_BLUE_FIRE_2;
+                    break;
+                case TILE_WATER:
+                    break;
+                default:
+                    continue;
+            }
+            
             a.x = x;
             a.y = y;
-
-            switch (tile.id)
-            {
-            case TILE_FIRE_1:
-                a.item1 = TILE_FIRE_1;
-                a.item2 = TILE_FIRE_2;
-                break;
-            case TILE_BLUE_FIRE_1:
-                a.item1 = TILE_BLUE_FIRE_1;
-                a.item2 = TILE_BLUE_FIRE_2;
-                break;
-            case TILE_WATER:
-                break;
-            default:
-                continue;
-            }
             
             Array_Append(&animationTile, &a);
         }
@@ -66,14 +67,14 @@ void scrn_doAnimations() {
     
     
     foreach(animationTile, i) {
-        animation_t *a = (animation_t*)Array_Get(&animationTile, i);
-        tile_t tile = getTile(a->x, a->y);
+        animation_t a = *(animation_t*)Array_Get(&animationTile, i);
+        tile_t tile = getTile(a.x, a.y);
 
         if(tile.id == TILE_WATER) {
-            scrn_drawTile(tile, a->x, a->y);
+            scrn_drawTile(tile, a.x, a.y);
         } else {
-            tile.id = tile.id == a->item1 ? a->item2 : a->item1;
-            setTile(a->x, a->y, &tile);
+            tile.id = tile.id == a.item1 ? a.item2 : a.item1;
+            setTile(a.x, a.y, &tile);
         }
 
     }
@@ -115,7 +116,6 @@ void scrn_removeAnimation(const uint8_t x, const uint8_t y) {
  * @param column Y coordinate
  * @returns none */
 void scrn_drawTile(tile_t tile, uint8_t row, uint8_t column) {
-    // const gfx_sprite_t *sprite = (tile.type == TYPE_FIRE && !tile.data.fire.isLit) ? (gfx_sprite_t*)floor_data : lookupTile(tile.id).data;
     const gfx_sprite_t *sprite = lookupTile(tile.id).data;
     
     const unsigned int x = row << SHIFTBY;
@@ -140,6 +140,7 @@ void scrn_drawSprite(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
     gfx_ScaledSprite_NoClip(sprite, x, y, SCALEBY, SCALEBY);
 }
 
+
 /* draws a sprite
  * @param *sprite gfx_sprite_t to draw to the screen
  * @param x X coordinate of sprite in pixels
@@ -148,6 +149,7 @@ void scrn_drawSprite(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
 void scrn_drawSprite_Transparent(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
     gfx_ScaledTransparentSprite_NoClip(sprite, x, y, SCALEBY, SCALEBY);
 }
+
 
 /* Draws a string that is centered along the X-axis
  * @param *string pointer to the string
@@ -159,7 +161,8 @@ void scrn_centeredString(const char *string, uint8_t y) {
     gfx_PrintStringXY(string, SCREEN_WIDTH/2 - (pixelLen >> 1), y);
 }
 
-/* fills a pipe sprite with water and draws it onto the screen
+
+/* Fills a pipe sprite with water and draws it onto the screen.
  * @param *sprite source sprite pointer
  * @param row X coordinate of tile in rows/columns
  * @param column Y coordinate of tile in rows/columns
@@ -169,7 +172,7 @@ static void scrn_drawFilledPipe(const gfx_sprite_t *sprite, uint8_t x, uint8_t y
 
     memcpy(pipeSpriteBuffer, sprite, 66);
     
-    // search and replaced
+    // search and replace
     for(i = 2; i < 66; i++) {
         const uint8_t color = pipeSpriteBuffer[i];
 
@@ -193,14 +196,16 @@ void scrn_erasePlayer() {
 /* Redraws the player 
  * @returns none */
 void scrn_drawPlayer() {
-    Position pos = realPlayerPosition();
-
-    
+    const Position pos = realPlayerPosition();
 
     if(player.isMoving)
     {
-        if((animationTimer >> 2) & 1)
+        if(animationTimer & 0x10)
+        {
             playerS = (playerS == playerSpriteRun1) ? playerSpriteRun2 : playerSpriteRun1;
+            animationTimer = 0;
+        }
+
         scrn_drawSpriteWithOffset_Transparent(playerS, pos.x, pos.y);
     } else
     {

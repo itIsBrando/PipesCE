@@ -30,7 +30,7 @@ Position facingOffset(Direction d) {
 	Position pos;
 	pos.x = dx[d];
 	pos.y = dy[d];
-	return pos;//newPosition(dx[d], dy[d]);
+	return pos;
 }
 
 
@@ -50,7 +50,10 @@ tile_t chkCollision(uint8_t x, uint8_t y) {
 		return t;
 	}
 	else
+	{
 		return getTile(x, y);
+	}
+
 }
 
 
@@ -72,6 +75,7 @@ tile_t getTile(uint8_t row, uint8_t column) {
  * @returns tile_t *. */
 tile_t *getTilePointer(uint8_t row, uint8_t column) {
 	const uint8_t width = curLevel.width;
+
 	return &curLevel.data[column * width + row];
 }
 
@@ -83,6 +87,7 @@ tile_t *getTilePointer(uint8_t row, uint8_t column) {
 tile_t *getTilePointerSafely(uint8_t row, uint8_t column) {
 	const uint8_t width = curLevel.width;
 	const uint8_t height = curLevel.height;
+
 	return &curLevel.data[(column >= height ? height-1 : column) * width + (row >= width ? width-1 : row)];
 }
 
@@ -95,18 +100,18 @@ tile_t *getTilePointerSafely(uint8_t row, uint8_t column) {
  * @returns none. */
 void setTile(uint8_t row, uint8_t column, const tile_t *tile) {
 	const uint8_t width = curLevel.width;
+	tile_t *ptr = &curLevel.data[column * width + row];
 
 	if(tile) {
-		curLevel.data[column * width + row] = *tile;
-		scrn_drawTile(*tile, row, column);
+		*ptr = *tile;
 	} else {
 		tile_t t = {0};
-
-		curLevel.data[column * width + row] = t;
-		scrn_drawTile(t, row, column);
+		*ptr = t;
 	}
 	
+	scrn_drawTile(*ptr, row, column);
 }
+
 
 
 /* called every frame to animate the player. never used
@@ -114,12 +119,12 @@ void setTile(uint8_t row, uint8_t column, const tile_t *tile) {
 void updatePlayer() {
 	if(player.dx != 0)
 		player.dx++;
-
-	if(player.dy != 0)
+	else if(player.dy != 0)
 		player.dy++;
 
 	if(player.dx >= 8 || player.dy >= 8) {
 		const Position pos = facingOffset(player.direction);
+		
 		player.dx = player.dy = 0;
 		player.isMoving = false;
 		// actually move player
@@ -208,7 +213,6 @@ void movePlayer(char dx, char dy) {
 		
 	}
 
-
 	// initate move if tile is not solid and we are not currently moving
 	if(forceMove || !isSolid(tile.id)) {
 		player.isMoving = true;
@@ -218,12 +222,13 @@ void movePlayer(char dx, char dy) {
 
 }
 
+
 /* Pushs a tile at (x, y) in a direction.
  * Performs checks to ensure the tile can be pushed.
  * @param x x coordinate.
  * @param y y coordinate.
  * @param dir direction to push the tile.
- * @returns a 'pipe_t' or NULL if not found.*/
+ * @returns true if successful.*/
 bool moveTile(uint8_t x, uint8_t y, Direction dir) {
 	const Position pos = facingOffset(dir);
 	const uint8_t newX = x + (char)pos.x, newY = y + (char)pos.y;
@@ -267,7 +272,8 @@ bool moveTile(uint8_t x, uint8_t y, Direction dir) {
 const pipe_t *pipeFromIndex(const uint8_t tile) {
 	uint8_t i;
 
-	for(i = 0; i < PIPES_SIZE; i++) {
+	for(i = 0; i < PIPES_SIZE; i++)
+	{
 		if(lookupTile(tile).id == pipes[i].id) 
 			return &pipes[i];
 	}
@@ -275,11 +281,11 @@ const pipe_t *pipeFromIndex(const uint8_t tile) {
 	return NULL;
 }
 
-// lookups an index in 'tileSprites'
-tilesprite_t lookupTile(uint8_t index) {
-	const tilesprite_t t = tileset[index];
-
-	if(index != t.id)
-		dbg_sprintf(dbgerr, "lookupTile Error.\nIndex passed: %d\nExpected Index: %d\n", index, t.id);
-	return t;
+/* lookups an index in 'tileSprites'
+ * @param index tile index
+ * @returns tilesprite_t
+*/
+tilesprite_t lookupTile(uint8_t index)
+{
+	return tileset[index];
 }

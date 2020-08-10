@@ -180,45 +180,23 @@ mapstore_t maps[] = {
 void main(void) {
 	uint8_t kGroup6;
 
-	/* 
-	uint8_t i;
-	Array array; */
+	// *(char*)0xFD0000 = 1;
 
-	*(char*)0xFD0000 = 1;
-	
-	/* Array_New(&array, 10, sizeof(uint8_t));
-
-	for(i = 0; i < Array_Len(&array); i++) {
-		uint8_t *ii;
-		uint8_t write = ((i+1)<<2);
-		Array_Set(&array, &write, i);
-		ii = (uint8_t*)Array_Get(&array, i);
-		dbg_sprintf(dbgerr, "before %d: %d\n", i, *ii);
-	}
-
-	//((flow_t*)Array_Get(&array, 2))->position.x = 23;
-	Array_RemoveAt(&array, 1);
-	
-	for(i = 0; i < Array_Len(&array); i++) {
-		uint8_t *ii = Array_Get(&array, i);
-		dbg_sprintf(dbgerr, "after %d: %d\n", i, *ii);
-	}
-
-	Array_Destroy(&array);
- */
+	// initialize arrays
     Array_New(&flows, 30, sizeof(flow_t));
 	Array_New(&animationTile, 40, sizeof(animation_t));
-	memset(&levelPointers, 0, sizeof(levelPointers));
+	memset(&levelPointers, 0, SIZEOF_LEVEL_POINTERS);
 	
 	// initialize graphics
 	gfx_Begin();
 	gfx_SetPalette(mypalette, sizeof_mypalette, 0);
 	gfx_SetTransparentColor(COLOR_TRANSPARENT);
 
+	// load save
 	utl_load();
-
-	waterSpriteBuffer[0] = waterSpriteBuffer[1] = 8;
 	
+	// more graphics stuff
+	*(uint24_t*)waterSpriteBuffer = 0x0808;
 	gfx_SetDraw(gfx_buffer);
 	gfx_FillScreen(COLOR_YELLOW);
 
@@ -247,7 +225,6 @@ void main(void) {
 		
 		wtr_tickFlows();
 		scrn_doAnimations();
-
 
 		// pass d-pad buttons
 		move(kb_Data[7]);
@@ -315,10 +292,8 @@ void move(uint8_t key) {
 
 // called by `lvl_complete()`.
 // Loads the next level
-// calling 'freeLevel' crashes the game
 void nextLevel() {
 	setLevelCompletion(levelNumber);
-	// freeLevel();	
 
 	levelNumber = showWorldMap();
 }
@@ -331,7 +306,7 @@ void drawMapTitle(struct Map_t *m) {
 }
 
 
-void setCompletionStars()
+static void setCompletionStars()
 {
 	uint8_t i;
 	// if a level has been completed, then set a star tile
@@ -380,7 +355,6 @@ uint8_t showWorldMap() {
 	uint8_t level = getLastLevelPlayed();
 	struct Map_t *curPosition;
 
-	// curLevel = WorldMapLevel;
 	memcpy(&curLevel, &WorldMapLevel, sizeof(level_t));
 
 	lvl_draw();
@@ -396,11 +370,11 @@ uint8_t showWorldMap() {
 	// draws the stars over levels that are completed
 	setCompletionStars();
 
-	memset(&player, 0, sizeof(struct player_t));
-	
-	// initialize player position
 	curPosition = &worldMaps[level];
 	curPosition->id = level;
+	
+	// initialize player position
+	memset(&player, 0, sizeof(struct player_t));
 	player.x = curPosition->x;
 	player.y = curPosition->y;
 	drawMapTitle(curPosition);
