@@ -15,9 +15,10 @@ extern pipe_t pipes[];
 
 extern tile_t *levelPointers[TOTAL_LEVELS];
 
-void loadMap(mapstore_t, uint8_t);
-void drawLevel();
-void completeLevel();
+void lvl_load(mapstore_t, uint8_t);
+void lvl_draw();
+void lvl_complete();
+void lvl_free();
 
 void rotateTile(uint8_t x, uint8_t y);
 

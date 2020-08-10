@@ -16,7 +16,7 @@ static gfx_sprite_t *playerS = playerSprite;
 /* Initializes the 'animationTiles' Array.
  * Should be called before a level is drawn
  * @returns none */
-void initAnimations() {
+void scrn_initAnimations() {
     uint8_t x, y;
 
     Array_Clear(&animationTile);
@@ -55,11 +55,11 @@ void initAnimations() {
 }
 
 
-void doAnimations() {
+void scrn_doAnimations() {
     uint8_t i;
 
     animationTimer++;
-    animateWater();
+    wtr_animateWater();
 
     if((animationTimer % 15) != 0)
         return;
@@ -70,7 +70,7 @@ void doAnimations() {
         tile_t tile = getTile(a->x, a->y);
 
         if(tile.id == TILE_WATER) {
-            drawTile(tile, a->x, a->y);
+            scrn_drawTile(tile, a->x, a->y);
         } else {
             tile.id = tile.id == a->item1 ? a->item2 : a->item1;
             setTile(a->x, a->y, &tile);
@@ -84,7 +84,7 @@ void doAnimations() {
  * @param x X row of the tile
  * @param y Y column of the tile
  * @returns none */
-void removeAnimation(const uint8_t x, const uint8_t y) {
+void scrn_removeAnimation(const uint8_t x, const uint8_t y) {
     uint8_t i;
 
     foreach(animationTile, i)
@@ -105,8 +105,8 @@ void removeAnimation(const uint8_t x, const uint8_t y) {
  * @param x X coordinate of sprite in pixels
  * @param y Y coordinate of sprite in pixels
  * @returns none */
-#define drawSpriteWithOffset(sprite, x, y) drawSprite(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
-#define drawSpriteWithOffset_Transparent(sprite, x, y) drawSprite_Transparent(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
+#define scrn_drawSpriteWithOffset(sprite, x, y) scrn_drawSprite(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
+#define scrn_drawSpriteWithOffset_Transparent(sprite, x, y) scrn_drawSprite_Transparent(sprite, (unsigned int)(x) + curLevel.ox, (y) + curLevel.oy)
 
 
 /* redraws a tile at a given (row, column)
@@ -114,7 +114,7 @@ void removeAnimation(const uint8_t x, const uint8_t y) {
  * @param row X coordinate
  * @param column Y coordinate
  * @returns none */
-void drawTile(tile_t tile, uint8_t row, uint8_t column) {
+void scrn_drawTile(tile_t tile, uint8_t row, uint8_t column) {
     // const gfx_sprite_t *sprite = (tile.type == TYPE_FIRE && !tile.data.fire.isLit) ? (gfx_sprite_t*)floor_data : lookupTile(tile.id).data;
     const gfx_sprite_t *sprite = lookupTile(tile.id).data;
     
@@ -123,9 +123,9 @@ void drawTile(tile_t tile, uint8_t row, uint8_t column) {
 
     // if is a pipe and is filled with water, fill blue
     if(IS_PIPE(tile) && tile.data.hasWater)
-        drawFilledPipe(sprite, x, y);
+        scrn_drawFilledPipe(sprite, x, y);
     else
-        drawSpriteWithOffset(sprite, x, y);
+        scrn_drawSpriteWithOffset(sprite, x, y);
 	
 		
 }
@@ -136,7 +136,7 @@ void drawTile(tile_t tile, uint8_t row, uint8_t column) {
  * @param x X coordinate of sprite in pixels
  * @param y Y coordinate of sprite in pixels
  * @returns none */
-void drawSprite(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
+void scrn_drawSprite(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
     gfx_ScaledSprite_NoClip(sprite, x, y, SCALEBY, SCALEBY);
 }
 
@@ -145,7 +145,7 @@ void drawSprite(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
  * @param x X coordinate of sprite in pixels
  * @param y Y coordinate of sprite in pixels
  * @returns none */
-void drawSprite_Transparent(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
+void scrn_drawSprite_Transparent(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
     gfx_ScaledTransparentSprite_NoClip(sprite, x, y, SCALEBY, SCALEBY);
 }
 
@@ -153,7 +153,7 @@ void drawSprite_Transparent(gfx_sprite_t *sprite, unsigned int x, uint8_t y) {
  * @param *string pointer to the string
  * @param y Y coordinate
  * @returns none */
-void centeredString(const char *string, uint8_t y) {
+void scrn_centeredString(const char *string, uint8_t y) {
     const uint8_t pixelLen = gfx_GetStringWidth(string);
 
     gfx_PrintStringXY(string, SCREEN_WIDTH/2 - (pixelLen >> 1), y);
@@ -164,7 +164,7 @@ void centeredString(const char *string, uint8_t y) {
  * @param row X coordinate of tile in rows/columns
  * @param column Y coordinate of tile in rows/columns
  * @returns none */
-static void drawFilledPipe(const gfx_sprite_t *sprite, uint8_t x, uint8_t y) {
+static void scrn_drawFilledPipe(const gfx_sprite_t *sprite, uint8_t x, uint8_t y) {
     uint8_t i;
 
     memcpy(pipeSpriteBuffer, sprite, 66);
@@ -177,26 +177,22 @@ static void drawFilledPipe(const gfx_sprite_t *sprite, uint8_t x, uint8_t y) {
             pipeSpriteBuffer[i] = gfx_RGBTo1555(0, 0, 255);
     }
 
-    drawSpriteWithOffset((gfx_sprite_t*)pipeSpriteBuffer, x, y);
+    scrn_drawSpriteWithOffset((gfx_sprite_t*)pipeSpriteBuffer, x, y);
 }
 
 
-/* redraws a tile at a given coordinate
- * @param row X coordinate of tile in rows/columns
- * @param column Y coordinate of tile in rows/columns
+/* Redraws the tile underneath the player 
  * @returns none */
-void updateTile(uint8_t x, uint8_t y) 
-{
-    drawTile(getTile(x, y), x, y);
-}
-
-void erasePlayer() {
+void scrn_erasePlayer() {
 	const tile_t tile = getTile(player.x, player.y);
-	drawTile(tile, player.x, player.y);
+
+	scrn_drawTile(tile, player.x, player.y);
 }
 
 
-void drawPlayer() {
+/* Redraws the player 
+ * @returns none */
+void scrn_drawPlayer() {
     Position pos = realPlayerPosition();
 
     
@@ -205,10 +201,10 @@ void drawPlayer() {
     {
         if((animationTimer >> 2) & 1)
             playerS = (playerS == playerSpriteRun1) ? playerSpriteRun2 : playerSpriteRun1;
-        drawSpriteWithOffset_Transparent(playerS, pos.x, pos.y);
+        scrn_drawSpriteWithOffset_Transparent(playerS, pos.x, pos.y);
     } else
     {
-    	drawSpriteWithOffset_Transparent(playerSprite, pos.x, pos.y);
+    	scrn_drawSpriteWithOffset_Transparent(playerSprite, pos.x, pos.y);
     }
 }
 
@@ -216,7 +212,7 @@ void drawPlayer() {
 /* returns the actual screen coords of the player
  * - normally stored as a tile location
  * @returns position struct */
-Position realPlayerPosition() {
+static Position realPlayerPosition() {
     Position pos = facingOffset(player.direction);
     pos.x = (player.x << SHIFTBY) + player.dx * (char)pos.x;
     pos.y = (player.y << SHIFTBY) + player.dy * (char)pos.y;

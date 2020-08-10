@@ -215,7 +215,7 @@ void main(void) {
 	gfx_SetPalette(mypalette, sizeof_mypalette, 0);
 	gfx_SetTransparentColor(COLOR_TRANSPARENT);
 
-	loadData();
+	utl_load();
 
 	waterSpriteBuffer[0] = waterSpriteBuffer[1] = 8;
 	
@@ -223,7 +223,7 @@ void main(void) {
 	gfx_FillScreen(COLOR_YELLOW);
 
 	// keep the world map loaded the the entire runtime
-	loadMap(WorldMapData, 0);
+	lvl_load(WorldMapData, 0);
 	memcpy(&WorldMapLevel, &curLevel, sizeof(level_t));
 
 	// title screen
@@ -237,7 +237,7 @@ void main(void) {
 			levelNumber = showWorldMap();
 		}
 		
-		erasePlayer();
+		scrn_erasePlayer();
 
 		if(kb_IsDown(kb_Key2nd)) {
 			player.isPulling = true;
@@ -245,15 +245,15 @@ void main(void) {
 			player.isPulling = false;
 		}
 		
-		tickFlows();
-		doAnimations();
+		wtr_tickFlows();
+		scrn_doAnimations();
 
 
 		// pass d-pad buttons
 		move(kb_Data[7]);
 		
 		updatePlayer();
-		drawPlayer();
+		scrn_drawPlayer();
 
 		gfx_BlitBuffer();
 	} while(true);
@@ -261,12 +261,19 @@ void main(void) {
 }
 
 
+
+
 /* Frees up all memory and exits the program
  * @returns does not return. */
 void cleanUp() {
-	saveData();
+	
+	// save the file and close it
+	utl_save();
 
 	gfx_End();
+
+	// free levels
+	lvl_free();
 
 	Array_Destroy(&flows);
 	Array_Destroy(&animationTile);
@@ -306,7 +313,7 @@ void move(uint8_t key) {
 }
 
 
-// called by `completeLevel()`.
+// called by `lvl_complete()`.
 // Loads the next level
 // calling 'freeLevel' crashes the game
 void nextLevel() {
@@ -320,7 +327,7 @@ void nextLevel() {
 void drawMapTitle(struct Map_t *m) {
 	gfx_SetColor(COLOR_YELLOW);
 	gfx_FillRectangle_NoClip((SCREEN_WIDTH - 8 * 17) / 2, SCREEN_HEIGHT - 24, 17 * 8, 8);
-	centeredString(m->title, SCREEN_HEIGHT - 24);
+	scrn_centeredString(m->title, SCREEN_HEIGHT - 24);
 }
 
 
@@ -337,7 +344,7 @@ void setCompletionStars()
 			const tile_t t = {{0}, 0, 0, TILE_STAR};
 
 			setTile(m.x, m.y, &t);
-			removeAnimation(m.x, m.y);
+			scrn_removeAnimation(m.x, m.y);
 		}
 
 	}
@@ -376,9 +383,9 @@ uint8_t showWorldMap() {
 	// curLevel = WorldMapLevel;
 	memcpy(&curLevel, &WorldMapLevel, sizeof(level_t));
 
-	drawLevel();
-	initFire();
-	initAnimations();
+	lvl_draw();
+	fre_init();
+	scrn_initAnimations();
 	Array_Clear(&flows);
 	
 	gfx_SetTextBGColor(30);
@@ -400,7 +407,7 @@ uint8_t showWorldMap() {
 
 	while((key = os_GetCSC()) != sk_2nd && key != sk_Enter)
 	{
-		erasePlayer();
+		scrn_erasePlayer();
 		
 		switch(key)
 		{
@@ -420,14 +427,14 @@ uint8_t showWorldMap() {
 			cleanUp();
 		}
 
-		doAnimations();
-		drawPlayer();
+		scrn_doAnimations();
+		scrn_drawPlayer();
 
 		gfx_BlitBuffer();
 	}
 
 	key = curPosition->id;
-	loadMap(maps[key], key + 1);
+	lvl_load(maps[key], key + 1);
 	
 	setLastLevelPlayed(key);
 

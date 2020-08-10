@@ -26,7 +26,7 @@ const pipe_t pipes[] = {
 };
 
 // index = level number + 1. index = 0 if map is the world map
-void loadMap(mapstore_t map, uint8_t index) {
+void lvl_load(mapstore_t map, uint8_t index) {
 	unsigned int i;
 	uint8_t *data = map.data;
 	const unsigned int area = (unsigned int)(map.width) * (unsigned int)(map.height);
@@ -65,7 +65,7 @@ void loadMap(mapstore_t map, uint8_t index) {
 		dbg_sprintf(dbgerr, "benchmark 2\n");
 		data = malloc(area);
 		assert(data);
-		rleDecompress(copy, &data, map.rleSize);
+		utl_rleDecompress(copy, &data, map.rleSize);
 	}
 
 	assert(curLevel.data);
@@ -80,7 +80,7 @@ void loadMap(mapstore_t map, uint8_t index) {
 		
 		if(tiledata.id == TILE_FIRE_1 || tiledata.id == TILE_BLUE_FIRE_1)
 		{
-			createFire(t);
+			fre_create(t);
 		} else if (tiledata.id == TILE_ROTATION)
 		{
 			t->type = TYPE_ROTATE;
@@ -98,16 +98,36 @@ void loadMap(mapstore_t map, uint8_t index) {
 		free(data);
 	}
 
-
-	drawLevel();
+	lvl_draw();
 	player.x = curLevel.px;
 	player.y = curLevel.py;
-	initFire();
-	initAnimations();
+	fre_init();
+	scrn_initAnimations();
 	Array_Clear(&flows);
 }
 
-void drawLevel() {
+
+
+/* Frees all loaded levels
+ * @returns none. */
+void lvl_free()
+{
+	uint8_t i;
+
+	for(i = 0; i < sizeof(levelPointers); i++)
+	{
+		// if malloced, then free and set to null
+		if(levelPointers[i])
+		{
+			free(levelPointers[i]);
+			levelPointers[i] = NULL;
+		}
+	}
+}
+
+/* Draws the level in 'curLevel'
+ * @returns none. */
+void lvl_draw() {
 	uint8_t x, y;
 	
 	gfx_FillScreen(COLOR_YELLOW);
@@ -116,7 +136,7 @@ void drawLevel() {
 		for(x = 0; x < curLevel.width; x++)
 		{
 			tile_t tile = getTile(x, y);
-			drawTile(tile, x, y);
+			scrn_drawTile(tile, x, y);
 		}
 	}
 
@@ -148,27 +168,20 @@ void rotateTile(uint8_t x, uint8_t y) {
 }
 
 
-/* Draws the map and initializes necessary variables.
- * Should call 'createMap' first
- * @param *level pointer to level_t to load
- * @returns none. */
-
-
-
 /* Draws the UI that occurs after completing a level.
- * Should call 'createMap' first
  * @returns none. */
-void completeLevel() {
+void lvl_complete()
+{
 	uint8_t key;
 	
-	drawLevel();
+	lvl_draw();
 
-	centeredString("Level Complete!", SCREEN_HEIGHT - 8);
+	scrn_centeredString("Level Complete!", SCREEN_HEIGHT - 8);
 
-	drawPlayer();
+	scrn_drawPlayer();
 	// add fireworks later??
 	do {
-		doAnimations();
+		scrn_doAnimations();
 		gfx_BlitBuffer();
 	} while((key = os_GetCSC()) != sk_2nd);
 

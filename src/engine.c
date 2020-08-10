@@ -98,12 +98,12 @@ void setTile(uint8_t row, uint8_t column, const tile_t *tile) {
 
 	if(tile) {
 		curLevel.data[column * width + row] = *tile;
-		drawTile(*tile, row, column);
+		scrn_drawTile(*tile, row, column);
 	} else {
 		tile_t t = {0};
 
 		curLevel.data[column * width + row] = t;
-		drawTile(t, row, column);
+		scrn_drawTile(t, row, column);
 	}
 	
 }
@@ -130,9 +130,9 @@ void updatePlayer() {
 
 		// check for starting water flow
 		if(chkCollision(player.x, player.y).id == TILE_HANDLE && !player.isWaterFlowing)
-			initFlows();
+			wtr_initFlows();
 		else if(player.isWaterFlowing) {
-			drainWater();
+			wtr_drainWater();
 		}
 	}
 	

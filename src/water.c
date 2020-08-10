@@ -17,7 +17,13 @@ uint8_t waterSpriteBuffer[66];
 static bool keepWaterTick = false;
 static bool levelComplete;
 
-void drainWater() {
+
+
+/* Removes all flows and redraws the water-logged pipes. 
+ * Reignites blue fires. 
+ * Removes water tiles.
+ * @returns none.*/
+void wtr_drainWater() {
     const uint8_t width = curLevel.width;
     const uint8_t height = curLevel.height;
     uint8_t y, x;
@@ -42,7 +48,7 @@ void drainWater() {
             } else if(tile.id == TILE_WATER)
             {
                 tile.id = 0;
-                removeAnimation(x, y);
+                scrn_removeAnimation(x, y);
             } else {
                 continue;
             }
@@ -56,7 +62,11 @@ void drainWater() {
 }
 
 
-void initFlows() {
+
+/* Starts the water flowing out of a spout.
+ * Also rotates pipes
+ * @returns none.*/
+void wtr_initFlows() {
     const uint8_t width = curLevel.width;
     const uint8_t height = curLevel.height;
     uint8_t y, x;
@@ -75,7 +85,7 @@ void initFlows() {
 
             if(IS_SPOUT(tile))
             {
-                createFlow(x, y, pipeFromIndex(tile.id)->directions);
+                wtr_createFlow(x, y, pipeFromIndex(tile.id)->directions);
                 keepWaterTick = true;
             } else if(tile.type == TYPE_ROTATE)
             {
@@ -86,11 +96,17 @@ void initFlows() {
         
     }
 
-    tickFlows();
+    wtr_tickFlows();
 }
 
 
-bool createFlow(uint8_t x, uint8_t y, Direction dir) {
+
+/* Creates a new flow at (x, y)
+ * @param x row
+ * @param y column
+ * @param dir direction the pipe is facing (can be multiple)
+ * @returns none.*/
+void wtr_createFlow(uint8_t x, uint8_t y, Direction dir) {
     tile_t *tile = getTilePointer(x, y);
     flow_t f;
 
@@ -105,11 +121,14 @@ bool createFlow(uint8_t x, uint8_t y, Direction dir) {
     tile->data.hasWater = true;
     setTile(x, y, tile);
     
-    return true;
 }
 
 
-void tickFlows() {
+
+/* Loops through each flow and moves the water.
+ * Will return if no flow is moving
+ * @returns none.*/
+void wtr_tickFlows() {
     uint8_t i;
 
     if(!keepWaterTick)
@@ -122,7 +141,7 @@ void tickFlows() {
     {
         const flow_t *f = (flow_t*)Array_Get(&flows, i);
 
-        if(doFlow(f))
+        if(wtr_doFlow(f))
             keepWaterTick = true;
         else
             i--;
@@ -132,8 +151,10 @@ void tickFlows() {
     }
 }
 
-
-bool doFlow(flow_t *self) {
+/* Checks surrounding pipes to continue the movement of water
+ * @param *self pointer to flow_t
+ * @returns true if the flow has continued to another pipe.*/
+bool wtr_doFlow(flow_t *self) {
     const Direction d = self->spreadDirection;
     Direction directions[4];
     uint8_t i;
@@ -180,9 +201,9 @@ bool doFlow(flow_t *self) {
             {
                 
                 // win if no fires remain
-                if(!putOutFire(tile, pos.x, pos.y))
+                if(!fre_extinguish(tile, pos.x, pos.y))
                 {
-                    completeLevel();
+                    lvl_complete();
                     levelComplete = true;
                     // when we complete level, any active flows do not get destroyed
                     return false;
@@ -207,7 +228,7 @@ bool doFlow(flow_t *self) {
         } 
     }
 
-    deleteFlow(self);
+    wtr_deleteFlow(self);
 
     if(hasMoved)
         return true;
@@ -217,21 +238,19 @@ bool doFlow(flow_t *self) {
 }
 
 
-void deleteFlow(flow_t *self) {
-    // must be able to look up stuff
-    uint8_t i;
-
+/* Deletes a flow from the flow Array.
+ * inline???
+ * @param *self pointer to flow_t.
+ * @returns none.*/
+void wtr_deleteFlow(flow_t *self) {
     Array_Remove(&flows, self);
-/*     foreach(flows, i)
-    {
-        if((flow_t *)Array_Get(&flows, i) == self)
-            Array_RemoveAt(&flows, i);
-            // Array_Remove(&flows, self);
-    }
- */
 }
 
-void animateWater() {
+
+/* Modifies the water tile to look animated.
+ * Probably quite inefficient.
+ * @returns none.*/
+void wtr_animateWater() {
     uint8_t x, y;
     const uint8_t i = animationTimer;
 

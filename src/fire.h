@@ -11,8 +11,8 @@ extern uint8_t firesAlive;
 // extern Array fires;
 
 
-void initFire();
-void createFire(tile_t *);
-uint8_t putOutFire(tile_t *t, uint8_t x, uint8_t y);
+void fre_init();
+void fre_create(tile_t *);
+uint8_t fre_extinguish(tile_t *t, uint8_t x, uint8_t y);
 
 #endif

@@ -10,7 +10,7 @@ static ti_var_t saveSlot;
 static save_t save;
 
 
-void loadData() {
+void utl_load() {
     ti_var_t file;
     ti_CloseAll();
 
@@ -21,7 +21,7 @@ void loadData() {
         memcpy(&save, ti_GetDataPtr(file), sizeof(save_t));
         if(save.version != CURRENT_SAVE_VERSION)
         {
-            file = upgradeSave();
+            file = utl_upgradeSave();
         }
     } else {
         file = ti_Open(SAVE_NAME, "w+");
@@ -33,7 +33,11 @@ void loadData() {
 }
 
 
-void saveData() {
+/* Saves the save data into an appvar.
+ * Closes all open slots
+ * @returns none
+*/
+void utl_save() {
     const void *pointer = ti_GetDataPtr(saveSlot);
 
     memcpy(pointer, &save, sizeof(save_t));
@@ -41,7 +45,7 @@ void saveData() {
 }
 
 
-void upgradeSaveFail() {
+void utl_upgradeSaveFail() {
     gfx_SetTextFGColor(COLOR_RED);
     gfx_PrintStringXY("Save couldn't be upgraded.", 0, 16);
     gfx_PrintStringXY("Delete "SAVE_NAME" appvar. Report version:", 0, 24);
@@ -53,7 +57,13 @@ void upgradeSaveFail() {
 }
 
 
-ti_var_t upgradeSave() {
+/* Attempts to reformat the current appvar save.
+ * Closes all open slots but returns the one that it opens.
+ * A save appvar must already exist
+ * *Only writes to the 'save' struct, not the appvar, so call 'utl_save' if you need
+ * @returns new slot of the newly resize appvar
+*/
+ti_var_t utl_upgradeSave() {
     ti_var_t file;
     save_t *oldSave = malloc(sizeof(save_t));
 
@@ -79,7 +89,7 @@ ti_var_t upgradeSave() {
             memcpy(&save.completed, &oldSave->lastLevelPlayed, 20);
             break;
         default:
-            upgradeSaveFail();
+            utl_upgradeSaveFail();
 
     }
     // change version
@@ -98,20 +108,35 @@ ti_var_t upgradeSave() {
 }
 
 
+/* Sets completion of a certain level
+ * @param level 0-based index
+ * @returns none
+*/
 void setLevelCompletion(uint8_t level) {
     save.completed[level] = true;    
 }
 
 
+/* Gets the completion of a certain level
+ * @param level 0-based index
+ * @returns true if completed
+*/
 bool getLevelCompletion(uint8_t level) {
     return save.completed[level];
 }
 
+/* Gets the last level that was played
+ * @returns index of 0-based level index
+*/
 uint8_t getLastLevelPlayed()
 {
     return save.lastLevelPlayed;
 }
 
+
+/* Sets the last level that was played
+ * @param level 0-based index
+ * returns none*/
 void setLastLevelPlayed(uint8_t level)
 {
     save.lastLevelPlayed = level;
@@ -125,8 +150,9 @@ void setLastLevelPlayed(uint8_t level)
  * @param *data source of data
  * @param **dest memory location of a pointer to uint8_t
  * @param size number of bytes of *data
- * @returns void */
-void rleDecompress(uint8_t *data, uint8_t **dest, size_t size) {
+ * @returns none */
+void utl_rleDecompress(uint8_t *data, uint8_t **dest, size_t size)
+{
     uint8_t j;
     uint24_t i, out = 0;
 
