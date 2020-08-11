@@ -17,116 +17,27 @@
 #include "water.h"
 #include "util.h"
 #include "images/mypalette.h"
+#include "levels.h"
 
 
 struct player_t player;
 static level_t WorldMapLevel;
 
-// RLE = 14 bytes. 25% reduction. (originally uncompressable)
-const uint8_t lvl1[] = {
-	6, 1, 132, 2, 1, 138, 3, 0, 130, 133, 2, 1, 133, 4, 0, 133, 2, 1, 128, 133, 2, 0, 133, 128, 2, 1, 133, 128, 136, 2, 0, 133, 2, 1, 131, 136, 128, 2, 8, 137, 9, 1
-};
-
-// RLE = 22 bytes. 48% reduction.
-const uint8_t lvl2[] = {
-	9, 1, 6, 0, 2, 1, 5, 0, 130, 2, 1, 138, 3, 0, 2, 8, 140, 129, 128, 3, 8, 2, 0, 8, 1
-};
-
-// RLE = 15 bytes. 40% reduction.
-const uint8_t lvl3[] = {
-	9, 1, 2, 0, 138, 2, 0, 130, 2, 1, 4, 0, 133, 138, 129, 141, 2, 8, 143, 2, 8, 137, 8, 1
-};
-
-// RLE = 29 bytes. 36% reduction.
-const uint8_t lvl4[] = {
-	129, 132, 7, 1, 133, 130, 4, 0, 2, 1, 133, 5, 0, 2, 1, 133, 5, 0, 2, 1, 133, 7, 1, 133, 3, 0, 138, 128, 2, 1, 133, 2, 0, 2, 5, 128, 2, 1, 133, 5, 0, 2, 1, 131, 3, 8, 137, 128, 8, 1        
-};
-
-// RLE = 13 bytes. 28% reduction. (originally uncompressable)
-const uint8_t lvl5[] = {/* 
-	1,  1,  4,  1,  1,  1,  1,
-	1,  3,  5,  0,  0,  0,  1,
-	1,  1,  1,  8,  0,  0,  1,
-	1,  6,  9,  5,  0,  0,  1,
-	1,  3,  7,  0,  0,  0,  1,
-	1,  0, 10,  0,  0,  2,  1,
-	1,  1,  1,  1,  1,  1,  1, */
-	2, 1, 132, 5, 1, 131, 133, 3, 0, 4, 1, 136, 2, 0, 2, 1, 134, 137, 133, 2, 0, 2, 1, 131, 135, 3, 0, 2, 1, 128, 138, 2, 0, 130, 8, 1
-};
-
-// RLE = 34 bytes. 44% reduction
-const uint8_t lvl6[] = {
-	129, 132, 9, 1, 133, 2, 0, 130, 4, 0, 2, 1, 133, 6, 1, 143, 2, 1, 131, 3, 8, 144, 3, 0, 2, 1, 4, 0, 131, 3, 0, 2, 1, 133, 135, 6, 0, 2, 1, 138, 137, 6, 0, 10, 1
-};
-
-// RLE = 27 bytes. 47% reduction
-const uint8_t lvl7[] = {
-	129, 132, 9, 1, 133, 6, 0, 130, 2, 1, 131, 136, 3, 16, 3, 0, 2, 1, 128, 131, 3, 15, 3, 0, 2, 1, 128, 135, 6, 0, 10, 1
-};
-
-// RLE = 27 bytes. 31% reduction
-const uint8_t lvl8[] = {
-	3, 1, 132, 7, 1, 2, 0, 133, 4, 0, 130, 2, 1, 144, 129, 143, 136, 135, 3, 0, 2, 1, 2, 0, 133, 134, 137, 3, 0, 2, 1, 2, 0, 2, 5, 4, 0, 2, 1, 2, 0, 144, 133, 144, 135, 2, 0, 2, 1, 3, 0, 131, 136, 137, 2, 0, 2, 1, 8, 0, 10, 1
-};
-
-// RLE = 35 bytes. 33% reduction
-const uint8_t lvl9[] = {
-	11, 1, 130, 7, 0, 2, 1, 3, 0, 2, 8, 135, 2, 0, 2, 1, 2, 0, 143, 136, 135, 144, 2, 0, 2, 1, 2, 0, 133, 129, 2, 5, 2, 0, 2, 1, 2, 0, 133, 141, 137, 133, 2, 0, 2, 1, 2, 0, 133, 129, 144, 133, 2, 0, 2, 1, 128, 144, 131, 2, 8, 137, 2, 0, 2, 1, 8, 0, 2, 1, 8, 0, 10, 1
-};
-
-// RLE = 16 bytes. 34% reduction
-const uint8_t lvl10[] = {
-	129, 132, 6, 1, 131, 133, 2, 8, 138, 2, 1, 5, 0, 2, 1, 128, 149, 3, 0, 2, 1, 130, 4, 0, 8, 1
-};
-
-// RLE = 52 bytes!! 52% reduction
-const uint8_t lvl11[] = {
-	24, 0, 2, 1, 141, 135, 3, 1, 2, 0, 2, 5, 2, 1, 128, 134, 143, 135, 2, 1, 128, 131, 136, 137, 2, 1, 4, 0, 2, 1, 130, 128, 138, 128, 7, 1, 24, 0
-};
-
-// RLE = 25 bytes. 35% reduction
-const uint8_t lvl12[] = {
-	10, 1, 134, 135, 132, 144, 135, 2, 0, 2, 1, 143, 131, 137, 129, 131, 135, 128, 2, 1, 131, 135, 134, 135, 134, 137, 128, 2, 1, 144, 131, 137, 131, 137, 2, 0, 2, 1, 7, 0, 2, 1, 6, 0, 130, 10, 1
-};
-
-// RLE = 26 bytes. 43% reduction
-const uint8_t lvl13[] = {
-	129, 132, 8, 1, 6, 0, 138, 2, 1, 128, 130, 128, 130, 128, 130, 128, 2, 1, 128, 131, 5, 8, 2, 1, 128, 130, 128, 130, 128, 130, 128, 2, 1, 7, 0, 10, 1
-};
-
-// RLE = 24 bytes. 39% reduction
-const uint8_t lvl14[] = {
-	10, 1, 130, 2, 0, 138, 3, 0, 2, 1, 2, 0, 4, 8, 128, 2, 1, 128, 138, 128, 149, 128, 138, 128, 2, 1, 128, 137, 5, 0, 2, 1, 3, 0, 142, 3, 0, 10, 1
-};
-
-// RLE = 23 bytes. 34% reduction
-const uint8_t lvl15[] = {
-	4, 1, 132, 6, 1, 128, 134, 136, 143, 136, 135, 2, 0, 2, 1, 130, 136, 128, 133, 149, 133, 2, 0, 2, 1, 128, 133, 129, 133, 129, 133, 128, 3, 1, 128, 131, 3, 16, 137, 2, 0, 2, 1, 8, 0, 11, 1
-};
-
-// RLE = 24 bytes. 34% reduction
-const uint8_t lvl16[] = {
-	10, 1, 141, 135, 138, 2, 8, 128, 135, 2, 1, 2, 0, 144, 136, 128, 144, 128, 2, 1, 130, 128, 138, 136, 128, 143, 128, 2, 1, 128, 131, 138, 6, 1, 4, 0, 133, 2, 0, 2, 1, 4, 0, 133, 2, 0, 10, 1
-};
-
-// RLE = 39 bytes. 49% reduction
-const uint8_t lvl17[] = {
-	10, 1, 7, 0, 2, 1, 3, 0, 130, 136, 2, 5, 2, 1, 128, 4, 1, 2, 0, 2, 1, 7, 0, 2, 1, 7, 0, 2, 1, 7, 0, 2, 1, 141, 149, 136, 149, 136, 149, 138, 10, 1
-};
-
 static const struct Map_t worldMaps[] = {
 	// 1, 2, 3, 4, 5
-	{"FIRST PUSHES", 1, 1, 0, 2, 0, 0}, {"PULL IT", 4, 1, 1, 3, 0, 0}, {"MORE FIRE", 7, 1, 2, 4, 0, 0}, {"LONG PIPE", 10, 1, 3, 5, 0, 0}, {"SNAKE PIPE", 12, 1, 4, 0, 0, 6},
+	{"FIRST PUSHES", 1, 1, 0, 2, 0, 0}, {"PULL IT", 4, 1, 1, 3, 0, 0}, {"MORE FIRE", 7, 1, 2, 4, 0, 19}, {"LONG PIPE", 10, 1, 3, 5, 0, 0}, {"SNAKE PIPE", 12, 1, 4, 0, 0, 6},
 	// 6, 7
 	{"BLUE FIRE", 12, 4, 7, 0, 5, 8}, {"BLUE FIRE 3x", 9, 4, 0, 6, 0, 9},
 	// 8, 9, 10, 11
 	{"ROUND THE CORNER", 12, 7, 9, 0, 6, 0}, {"SPIRAL", 9, 7, 10, 8, 7, 12}, {"ROTATION", 6, 7, 11, 9, 14, 0}, {"OUT OF THE BOX", 3, 7, 0, 10, 0, 13},
 	// 12, 13
-	{"SNAKE PIPE", 7, 10, 13, 0, 9, 0}, {"MANY VALVES", 4, 10, 15, 12, 11, 0},
+	{"SNAKE PIPE", 7, 10, 13, 18, 9, 0}, {"MANY VALVES", 4, 10, 15, 12, 11, 0},
 	// 14, 15
 	{"FULL CIRCLE", 4, 4, 16, 10, 0, 10}, {"TIGHT SPACE", 1, 10, 0, 13, 17, 0},
-	// 16, 17
-	{"FIRE WALL", 1, 4, 0, 14, 0, 17}, {"SYNC", 1, 7, 0, 0, 16, 15}
+	// 16, 17, 18
+	{"FIRE WALL", 1, 4, 0, 14, 0, 17}, {"SYNC", 1, 7, 0, 0, 16, 15}, {"INFERNO", 10, 10, 12, 0, 0, 0, 0},
+	// 19
+	{"OPTIONAL LEVEL", 7, 4, 0, 0, 3, 0}
 };
 
 level_t curLevel;
@@ -175,7 +86,10 @@ mapstore_t maps[] = {
 	{1, 2, 10, 7, lvl15, sizeof(lvl15)}, // Tight Space
 	{1, 2, 9, 8, lvl16,  sizeof(lvl16)}, // FIRE WALL
 	{1, 1, 9, 9, lvl17,  sizeof(lvl17)}, // SYNC
+	{1, 3, 10, 8,lvl18,  sizeof(lvl18)}, // INFERNO
+	{1, 2, 8, 6, lvl19,  sizeof(lvl19)}, // OPTIONAL
 };
+
 
 void main(void) {
 	uint8_t kGroup6;
@@ -236,7 +150,6 @@ void main(void) {
 	} while(true);
 
 }
-
 
 
 
@@ -364,7 +277,6 @@ uint8_t showWorldMap() {
 	
 	gfx_SetTextBGColor(30);
 	gfx_SetTextTransparentColor(30);
-
 	gfx_SetTextFGColor(COLOR_BLACK);
 
 	// draws the stars over levels that are completed
@@ -385,20 +297,20 @@ uint8_t showWorldMap() {
 		
 		switch(key)
 		{
-		case sk_Right:
-			movePlayerWorldMap(&curPosition, curPosition->right);
-			break;
-		case sk_Left:
-			movePlayerWorldMap(&curPosition, curPosition->left);
-			break;
-		case sk_Down:
-			movePlayerWorldMap(&curPosition, curPosition->down);
-			break;
-		case sk_Up:
-			movePlayerWorldMap(&curPosition, curPosition->up);
-			break;
-		case sk_Clear:
-			cleanUp();
+			case sk_Right:
+				movePlayerWorldMap(&curPosition, curPosition->right);
+				break;
+			case sk_Left:
+				movePlayerWorldMap(&curPosition, curPosition->left);
+				break;
+			case sk_Down:
+				movePlayerWorldMap(&curPosition, curPosition->down);
+				break;
+			case sk_Up:
+				movePlayerWorldMap(&curPosition, curPosition->up);
+				break;
+			case sk_Clear:
+				cleanUp();
 		}
 
 		scrn_doAnimations();

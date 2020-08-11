@@ -1,7 +1,6 @@
 #ifndef SPRITES_H
 #define SPRITES_H
 
-//#define TILE_NUM 5
 #define TILE_SIZE 8
 
 enum {

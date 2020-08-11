@@ -32,7 +32,7 @@ tilesprite_t tileset[TILE_NUM] = {
 	{TILE_WATER,			(gfx_sprite_t*)waterSpriteBuffer, 0},
 	{TILE_STAR,				(gfx_sprite_t*)star_data, 0},
 	{TILE_MOUNTAIN,			(gfx_sprite_t*)mountain_data, 0},
-	{TILE_ROTATION,		(gfx_sprite_t*)rotator_data, 0}
+	{TILE_ROTATION,			(gfx_sprite_t*)rotator_data, 0}
 };
 
 // hosts a buffer to write a sprite temporarily
